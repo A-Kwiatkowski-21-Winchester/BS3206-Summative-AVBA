@@ -13,7 +13,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <button onClick={apiCall}>Make API Call</button>
+        <button onClick={apiCall}>Test API Call</button>
       </header>
     </div>
   );
