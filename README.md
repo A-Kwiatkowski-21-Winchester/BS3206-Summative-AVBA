@@ -2,7 +2,7 @@
 
 ## Development environment instructions:
 
-Once the project repository is cloned on your machine, you should open two terminals in the **main folder directory**. One will run the node.js server, and one will run the main site (the react app client).
+Once the project repository is cloned on your machine, you should open two terminals in the **main folder directory** (you can do this in VS Code). One will run the node.js server, and one will run the main site (the react app client).
 
 **In Order:**
 ### Terminal 1 (Server):
