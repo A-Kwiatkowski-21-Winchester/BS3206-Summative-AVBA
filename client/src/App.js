@@ -5,7 +5,7 @@ import axios from 'axios';
 function App() {
 
   const apiCall = () => {
-    axios.get('https://localhost:8080').then((data) => {
+    axios.get('http://localhost:8080').then((data) => {
       console.log(data)
     })
   }
