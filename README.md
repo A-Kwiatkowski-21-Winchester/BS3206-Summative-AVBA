@@ -1,5 +1,8 @@
 # BS3206 Summative Assignment (Team AVBA)
 
+## Description:
+This project aims to develop a comprehensive health website that provides users with access to various health-related resources, tools, and services. The website will serve as a central hub for users to find information, calculate health metrics such as BMI, book appointments with healthcare professionals, track prescription progress, and report any issues they encounter.
+
 ## Development environment instructions:
 
 Once the project repository is cloned on your machine, you should open two terminals in the **main folder directory** (you can do this in VS Code). One will run the node.js server, and one will run the main site (the react app client).
