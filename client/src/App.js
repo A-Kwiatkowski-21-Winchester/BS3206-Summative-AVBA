@@ -50,6 +50,8 @@ const BMI = () => {
                 <h1>Calculate your body mass index (BMI)</h1>
                 <h2>Check your BMI to find out if you're a healthy weight for your height.</h2>
 
+{/*link for another screen which gives more info of bmi then on that page one for the calc itself*/}               
+
                 <form onSubmit={reload}>
                     {/* <div>
                         <label className="labels">Age:</label><br />
