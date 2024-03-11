@@ -46,16 +46,13 @@ run().catch(console.dir);
 
 
 let db = client.db("sample_guides");
-console.log(db);
+//console.log(db);
 
 let collection = db.collection("planets");
-console.log(collection);
+//console.log(collection);
 
 let record = collection.findOne()
-console.log(record)
-record.then(function(result) {
-    console.log(result)
-})
+record.then(result => { console.log(result) })
 
 
 /// END OF MONGODB TEST BIT
