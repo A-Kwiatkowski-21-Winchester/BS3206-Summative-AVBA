@@ -9,8 +9,9 @@ const app = express();
 
 app.use(cors());
 
+let env;
 try {
-    const env = require('./env/environment');
+    env = require('./env/environment');
 } catch {
     console.error("Unable to load './env/environment.js'. Have you filled out the template and renamed it?");
 }
@@ -42,6 +43,20 @@ async function run() {
   }
 }
 run().catch(console.dir);
+
+
+let db = client.db("sample_guides");
+console.log(db);
+
+let collection = db.collection("planets");
+console.log(collection);
+
+let record = collection.findOne()
+console.log(record)
+record.then(function(result) {
+    console.log(result)
+})
+
 
 /// END OF MONGODB TEST BIT
 
