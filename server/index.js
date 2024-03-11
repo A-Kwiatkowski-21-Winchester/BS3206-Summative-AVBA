@@ -9,11 +9,12 @@ const app = express();
 
 app.use(cors());
 
+const env = require('./env/environment');
 
 /// START OF MONGODB TEST BIT
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://avba-host-1:<password>@avba-cluster.lyattit.mongodb.net/?retryWrites=true&w=majority&appName=AVBA-Cluster";
+const uri = `mongodb+srv://${env.username}:${env.password}@${env.clusterName}/?retryWrites=true&w=majority&appName=AVBA-Cluster`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
