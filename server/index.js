@@ -9,7 +9,11 @@ const app = express();
 
 app.use(cors());
 
-const env = require('./env/environment');
+try {
+    const env = require('./env/environment');
+} catch {
+    console.error("Unable to load './env/environment.js'. Have you filled out the template and renamed it?");
+}
 
 /// START OF MONGODB TEST BIT
 
