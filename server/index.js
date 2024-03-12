@@ -42,8 +42,12 @@ async function run() {
     await client.close();
   }
 }
-run().catch(console.dir);
+//run().catch(console.dir);
+//run().catch(console.dir);
 
+let dbconnect = require('./dbconnect');
+
+dbconnect.ping();
 
 let db = client.db("sample_guides");
 //console.log(db);
@@ -51,8 +55,8 @@ let db = client.db("sample_guides");
 let collection = db.collection("planets");
 //console.log(collection);
 
-let record = collection.findOne()
-record.then(result => { console.log(result) })
+// let record = collection.findOne()
+// record.then(result => { console.log(result) })
 
 
 /// END OF MONGODB TEST BIT
