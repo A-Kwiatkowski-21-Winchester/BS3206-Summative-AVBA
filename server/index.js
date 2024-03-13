@@ -17,6 +17,10 @@ try {
 }
 
 
+let dbExample = require('./examples/dbconnect-exampleuse');
+dbExample.exampleRun();
+
+
 app.get('/', (req, res) => {
     res.send('Hello universe!');
 });
