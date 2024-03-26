@@ -56,3 +56,35 @@ If the result was empty, use the following command to install the package:
 npm install react-scripts --save
 ```
 Once it has installed, repeat the terminal steps [above](#terminal-1-server) to check functionality. In case of further fault, open an [issue](https://github.com/A-Kwiatkowski-21-Winchester/BS3206-Summative-AVBA/issues/new/choose).
+
+
+## Database Interaction Instructions
+Database interactions are handled by the MongoDB Node Driver. You can read more about it [here](https://www.mongodb.com/docs/drivers/node/current/).
+
+A helper module has been created called `dbconnect.js` which will assist with basic functions.
+
+### Setup
+In order to successfully connect to the database, you will need to use the template for `environment.js` stored in `env/`.
+
+Create a copy of the template and rename it to `environment.js` before filling out the username and password fields.
+> [!WARNING]
+> **Do not modify the template file.** 
+> 
+> This is because `environment.json` is a file that Git will **ignore and not sync** to the repository, to ensure the database login credentials remain secure. The template file ***will* sync**, so it must remain sanitary.
+
+### Using the `dbconnect` helper
+
+To begin using the `dbconnect.js` helper module, use the following line:
+```javascript
+let dbconnect = require('./dbconnect');
+```
+After which you can type `dbconnect.` to view the available methods and properties. 
+
+#### Examples
+For examples of how to use the available methods, refer to the `examples/dbconnect-exampleuse.js` file. 
+
+In order to run the example method provided, you can use the following code in your file:
+```javascript
+let dbExample = require('./examples/dbconnect-exampleuse');
+dbExample.exampleRun();
+```
