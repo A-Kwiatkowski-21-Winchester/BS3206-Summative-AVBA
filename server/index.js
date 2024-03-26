@@ -9,6 +9,18 @@ const app = express();
 
 app.use(cors());
 
+let env;
+try {
+    env = require('./env/environment');
+} catch {
+    console.error("Unable to load './env/environment.js'. Have you filled out the template and renamed it?");
+}
+
+
+let dbExample = require('./examples/dbconnect-exampleuse');
+dbExample.exampleRun();
+
+
 app.get('/', (req, res) => {
     res.send('Hello universe!');
 });
