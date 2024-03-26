@@ -1,0 +1,40 @@
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+   
+
+}
+
+.title{
+    text-align: center;
+}
+.book{
+    padding: 3vw;
+    display: flex;
+    justify-content: center;
+}
+.bookingform{
+    width: 50%;
+}
+.book label{
+    display: block;
+    text-align: left;
+    font-size: 20px;
+    margin: 0 0 0 0;
+}
+
+.book input{
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 15px 0 ;
+    border:0;
+    border-radius: 5px;
+    font-size: 20px;
+    background-color: bisque;
+}
+
+.btn{
+    width: 100%;
+}

@@ -1,20 +1,19 @@
-import logo from './logo.svg';
 import './App.css';
-import axios from 'axios';
+import {Route, Routes} from 'react-router-dom';
+import BookAppointments from './pages/GpAppointments/BookingSystem/BookAppointments';
+import ViewAppointments from './pages/GpAppointments/ViewAppointments/ViewAppointments';
+import Home from './pages/Home';
+
 
 function App() {
-
-  const apiCall = () => {
-    axios.get('http://localhost:8080').then((data) => {
-      console.log(data)
-    })
-  }
-
+ 
   return (
-    <div className="App">
-      <header className="App-header">
-        <button onClick={apiCall}>Test API Call</button>
-      </header>
+    <div>
+      <Routes>
+        <Route path="/" element={<Home/>}/>
+        <Route path="/bookAppointments" element={<BookAppointments />}/>
+        <Route path="/viewAppointments" element={<ViewAppointments />}/>
+      </Routes>
     </div>
   );
 }
