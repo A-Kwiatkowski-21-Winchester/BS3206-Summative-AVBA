@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axios from 'axios';
-import GaugeChart from 'react-gauge-chart'
-
-
-
 
 const BMI = () => {
     const [age, setAge] = useState();
@@ -18,9 +14,6 @@ const BMI = () => {
     const reload = () => {
         window.location.reload();
     };
-
-    const ranges = [0.2, 0.5, 0.75, 1]; // Represents the end value of each range on a scale from 0 to 1
-    const colors = ['#FF5F5F', '#FFC260', '#2FCC71']; // Colors for each range
 
     useEffect(() => {
         if (weight === 0 || (height === 0 && (feet === 0 || inches === 0))) {
@@ -50,15 +43,6 @@ const BMI = () => {
             setMsg("You're Obese");
         }
     }, [weight, height, feet, inches, weightSystem]);
-
-
-
-    <GaugeChart id="gauge-chart3" 
-    nrOfLevels={30} 
-    colors={["#FF5F6D", "#FFC371"]} 
-    arcWidth={0.3} 
-    percent={0.37} 
-    />
 
     return (
         <div className="app">
