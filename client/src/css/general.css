@@ -1,0 +1,18 @@
+.pageHead{
+    display:flex;
+    justify-content: space-between;
+    position:relative;
+    align-items:center;
+    background-color: rgb(206, 255, 239);
+}
+.headerLogo{
+    height:100px;
+    margin-top:1vh;
+    margin-bottom:1vh;
+    margin-left:1vw;
+    margin-right:1vw;
+}
+.pageTitle{
+    display: flex;
+    
+}

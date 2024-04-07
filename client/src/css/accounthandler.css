@@ -1,0 +1,27 @@
+.loginstatus{
+    display:flex;
+    justify-content:right;
+    margin-right:1vw
+    
+}
+
+.loginstatus li {
+    list-style:none;
+    border-style:ridge;
+    border-width:5px;
+    background-color:white;
+    color:black;
+    text-decoration: none;
+}
+
+.loginstatuslink{
+    background-color:white;
+    color:black;
+    text-decoration: none;
+}
+
+.loginstatuslink:hover{
+    background-color:rgb(255, 0, 0);
+    color:black;
+    text-decoration: none;
+}

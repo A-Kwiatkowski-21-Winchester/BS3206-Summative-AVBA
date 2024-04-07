@@ -1,5 +1,41 @@
+
+.navbar{
+    list-style: none;
+    display: flex;
+    justify-content:left;
+    background-color:rgb(141, 214, 233);
+    padding-top:2vh;
+    padding-bottom:2vh;
+
+}
+
 .navbar-item{
-    color:rgb(139, 28, 0);
-    border-style:dotted;
+    color:black;
+    background-color:aquamarine;
+    border-color:rgb(117, 236, 197);
+    
+    border-style:solid;
+    text-decoration:none; 
+    
+    padding-left:4vw;
+    padding-right:4vw;
+    padding-top:1.6vh;
+    padding-bottom:1.6vh;
+
+
+    
     
 }
+
+.active{
+    color:white;
+    background-color:darkcyan;
+    border-color:darkblue;
+}
+
+/* li a:hover{
+    color:white;
+    background-color:darkcyan;
+    border-color:darkblue;
+} */
+
