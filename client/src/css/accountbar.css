@@ -1,0 +1,35 @@
+.loginInteract {
+    margin: 5px;
+    list-style: none;
+    justify-items: space-between;
+
+}
+
+.loggedinInteract {
+    margin:5px;
+    list-style:none;
+    display:flex
+}
+
+.loggedinInteract li{
+    margin:5px;
+}
+
+.loginInteract .loginCred li {
+    display: flex;
+    justify-content: left;
+}
+
+.loginInteract .loginCred .loginCredLabel {
+    justify-self: left
+}
+
+.loginInteract .loginButton {
+    display: flex;
+    justify-content: right
+}
+
+.loginInteract .loginButton button {
+    margin-top: 5px;
+    margin-left: 5px
+}

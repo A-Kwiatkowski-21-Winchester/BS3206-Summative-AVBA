@@ -3,8 +3,8 @@ import './App.css';
 import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/navbar';
-import AccountBar from './components/accounthandler';
-import { Home, Login } from './pages/pageindex';
+import AccountBar from './components/accountbar';
+import { Home, SignUp } from './pages/pageindex';
 import "./css/general.css";
 import logo512 from './devLogo.png'
 
@@ -19,8 +19,7 @@ export default function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />}></Route>
-          <Route path="/login" element={<Login />}></Route>
-          <Route path="/signup"></Route>
+          <Route path="/signup" element={<SignUp/>}></Route>
           <Route path="/physical"></Route>
           <Route path="/mental"></Route>
           <Route path="/fitness"></Route>
