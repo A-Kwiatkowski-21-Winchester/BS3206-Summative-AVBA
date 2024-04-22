@@ -13,6 +13,7 @@ export default function ViewAppointments(){
 
             if (response.ok){
                 setAppointments(responseData)
+                
             }
 
             
@@ -20,7 +21,22 @@ export default function ViewAppointments(){
         getAppointments()
     }, [])
 
-    console.log(appointments)
+
+    const deleteAppointment = async (id) => {
+        const response = await fetch('http://localhost:8080/api/appointments/delete/' + id,{
+            method: 'DELETE'
+        })
+
+        const json = await response.json()
+
+        if(!response.ok){
+            console.log(json.error)
+        }
+        if (response.ok){
+            console.log(json)
+        }
+    }
+
     return(
         <div className="container">
             <h1>My Appointments</h1>
@@ -32,6 +48,7 @@ export default function ViewAppointments(){
                         <p key={appointment.doctorName}>Doctor: {appointment.doctorName}</p>
                         <p key={appointment.date}>Date: {appointment.date}</p>
                         <p key={appointment.time}>Time: {appointment.time}</p>
+                        <button onClick={() => deleteAppointment(appointment._id)}>Cancel</button>
                     </div>
                 ))}
             </div>
