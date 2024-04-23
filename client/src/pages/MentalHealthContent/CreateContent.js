@@ -1,0 +1,80 @@
+import './CreateContent.css';
+import { useState } from 'react';
+
+export default function CreateContent(){
+
+    const [title, setTitle] = useState('');
+    const [author, setAuthor] = useState('');
+    const [date, setDate] = useState('');
+    const [content, setContent] = useState('')
+
+
+
+    async function onSubmit(e){
+        e.preventDefault();
+
+
+        const articleDetails = {title, author, date, content}
+        //console.log(articleDetails)
+        const response = await fetch('http://localhost:8080/api/mentalhealth/create',{
+            method: 'POST',
+            body: JSON.stringify(articleDetails),
+            headers:{
+                'Content-Type': 'application/json'
+            }
+        })
+        const json = await response.json()
+
+        if(!response.ok){
+            console.log(json.error)
+        }
+        if (response.ok){
+            console.log(json)
+        }
+    }
+    return(
+        <div className='article'>
+            <form className="articleform" onSubmit={onSubmit}>
+                <h1 className="title">Create An Article</h1>
+                <label>Title</label>
+                <input type="text" 
+                onChange={(e) => setTitle(e.target.value)}
+                value = {title}
+                required/>
+
+                <label>Author</label>
+                <input type="text" 
+                onChange={(e) => setAuthor(e.target.value)}
+                value = {author}
+                required/>
+
+                <label>Date</label>
+                <input type="Date"
+                onChange={(e) => setDate(e.target.value)}
+                value = {date}
+                required/>
+
+
+                <label>Content</label>
+                <textarea type="text" 
+                onChange={(e) => setContent(e.target.value)}
+                value = {content}
+                required/>
+
+                <button className="btn"type="submit">Submit</button>
+                    
+            </form>
+        </div>
+    );
+}
+
+
+/**
+ * ID
+ * Title
+ * Topic
+ * Date
+ * Author
+ * Content
+ * Image
+ */
