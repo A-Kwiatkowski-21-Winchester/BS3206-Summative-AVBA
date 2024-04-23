@@ -13,7 +13,12 @@ Once the project repository is cloned on your machine, you should open two termi
 ```
 cd server
 ```
-#### 2. Start the node server
+#### 2. Ensure dependencies are installed *(optional)*
+(Usually only necessary when freshly cloning the repository or switching into a different branch)
+```
+npm install
+```
+#### 3. Start the node server
 ```
 node index.js
 ```
@@ -25,7 +30,12 @@ You should now see `Server listening on port 8080` in your terminal feed.
 ```
 cd client
 ```
-#### 2. Start the node server
+#### 2. Ensure dependencies are installed *(optional)*
+(Usually only necessary when freshly cloning the repository or switching into a different branch)
+```
+npm install
+```
+#### 3. Start the node server
 ```
 npm run start
 ```
