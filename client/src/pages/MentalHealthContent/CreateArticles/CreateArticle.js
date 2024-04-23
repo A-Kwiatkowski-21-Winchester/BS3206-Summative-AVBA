@@ -1,7 +1,7 @@
-import './CreateContent.css';
+import './CreateArticle.css';
 import { useState } from 'react';
 
-export default function CreateContent(){
+export default function CreateArticle(){
 
     const [title, setTitle] = useState('');
     const [author, setAuthor] = useState('');

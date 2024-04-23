@@ -1,0 +1,33 @@
+.container{
+    display: block;
+    position: absolute;
+    width: 80%;
+    margin: 10%;
+    border: 2px solid red;
+}
+
+.cards {
+
+    background-color: rgba(157, 37, 204, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    font-size: 30px;
+    text-align: center;
+}
+       
+.card {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    column-gap: 50px;
+    row-gap: 50px;
+    padding: 10px;
+}
+
+.Articles{
+    padding: 20px;
+    margin: 20px;
+}
+
+.Articles p, h5, h2{
+    padding-top: 10px;
+}
