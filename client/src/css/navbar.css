@@ -13,18 +13,12 @@
     color:black;
     background-color:aquamarine;
     border-color:rgb(117, 236, 197);
-    
     border-style:solid;
     text-decoration:none; 
-    
     padding-left:4vw;
     padding-right:4vw;
     padding-top:1.6vh;
     padding-bottom:1.6vh;
-
-
-    
-    
 }
 
 .active{
@@ -39,3 +33,40 @@ li a:hover{
     border-color:darkblue;
 }
 
+
+.dropdown-navbar {
+    color:black;
+    background-color:aquamarine;
+    border-color:rgb(117, 236, 197);
+    border-style:solid;
+    text-decoration:none; 
+    padding-left:4vw;
+    padding-right:4vw;
+    padding-top:1.6vh;
+    padding-bottom:1.6vh;
+  }
+  
+  .dropdown-container{
+    position: relative;
+    display: inline-block;
+  }
+  
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #64ffe5;
+    min-width: 160px;
+    z-index: 1;
+  }
+
+  .dropdown-content li:hover{
+    background-color:purple
+  }
+
+  .dropdown-container:hover .dropdown-content {display: block;}
+  
+  .dropdown-container:hover .dropdown-navbar {
+    color:white;
+    background-color:darkcyan;
+    border-color:darkblue;
+  }
