@@ -14,11 +14,11 @@ const uri = `mongodb+srv://${env.username}:${env.password}@${env.clusterName}/?r
 let globals = {
     /** The global client.
      * @type {MongoClient} */
-    client:null,
-    
+    client: null,
+
     /** Whether the dbconnect functions write their actions to console.
      * @type {boolean} */
-    verbose:false,
+    verbose: false,
 };
 
 /**
@@ -37,12 +37,12 @@ function generateClient(global = true, customUri = null) {
             deprecationErrors: true,
         }
     });
-    if(global) {
+    if (global) {
         globals.client = newClient;
     } else {
         return newClient
     }
-    if(globals.verbose) { console.log("New client generated") }
+    if (globals.verbose) { console.log("New client generated") }
 }
 
 /**
@@ -52,12 +52,12 @@ function generateClient(global = true, customUri = null) {
  */
 function openClient(clientToOpen = null) {
     try {
-        if(clientToOpen) {
+        if (clientToOpen) {
             clientToOpen.connect()
         } else {
             globals.client.connect()
         }
-        if(globals.verbose) { console.log("Opening client connection...") }
+        if (globals.verbose) { console.log("Opening client connection...") }
     } catch {
         console.error("Failed to open connection to client.")
     }
@@ -71,12 +71,12 @@ function openClient(clientToOpen = null) {
  */
 function closeClient(clientToClose = null) {
     try {
-        if(clientToClose) {
+        if (clientToClose) {
             clientToClose.close()
         } else {
             globals.client.close()
         }
-        if(globals.verbose) { console.log("Closing client connection...") }
+        if (globals.verbose) { console.log("Closing client connection...") }
     } catch {
         console.error("Failed to close connection to client.")
     }
@@ -121,7 +121,7 @@ async function transaction(action) {
  * will use the global `.client` property in this module.
  */
 async function ping(clientToUse = null) {
-    if(!clientToUse) {
+    if (!clientToUse) {
         clientToUse = globals.client // Use global client if none specified
     }
     console.log("Ping start");
