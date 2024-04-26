@@ -1,9 +1,12 @@
+@import "colors.css";
+
+
 .pageHead{
     display:flex;
     justify-content: space-between;
     position:relative;
     align-items:center;
-    background-color: rgb(206, 255, 239);
+    background-color: var(--headerbackground);
 }
 .headerLogo{
     height:100px;
