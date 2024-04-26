@@ -1,6 +1,6 @@
 let env;
 try {
-    env = require('./env/environment');
+    env = require('../env/environment');
 } catch {
     console.error("Unable to load './env/environment.js'. Have you filled out a copy of the template and renamed it?");
 }

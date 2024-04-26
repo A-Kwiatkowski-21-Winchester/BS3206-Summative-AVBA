@@ -3,7 +3,7 @@
  */
 function explainRun() {
     // Helper module import.
-    let dbconnect = require('../dbconnect');
+    let dbconnect = require('../libs/dbconnect');
 
     // Generate a global client
     dbconnect.generateClient();
@@ -60,7 +60,7 @@ function explainRun() {
  * A function with no comments to show how to write the code for this.
  */
 function exampleRun() {
-    let dbconnect = require('../dbconnect');
+    let dbconnect = require('../libs/dbconnect');
 
     dbconnect.generateClient();
 
