@@ -1,7 +1,11 @@
 .formEntry{
     list-style:none;
-    margin: 40px;
+    margin-top:10px
 }
 .formButton{
-    margin: 10px;
+    margin: 30px;
+}
+
+.signupText p{
+    margin-bottom:40px;
 }
