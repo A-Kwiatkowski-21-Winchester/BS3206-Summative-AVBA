@@ -16,7 +16,7 @@ const Navbar = () => {
                 <li><NavLink className="navbar-item" activeClassName="is-active" to="/physical">Physical</NavLink></li>
                 <li><NavLink className="navbar-item" activeClassName="is-active" to="/mental">Mental</NavLink></li>
                 <li><NavLink className="navbar-item" activeClassName="is-active" to="/fitness">Fitness</NavLink></li>
-                <li><NavLink className="navbar-item" activeClassName="is-active" to="/support">Support</NavLink></li>
+                <li><NavLink className="navbar-item" activeClassName="is-active" to="/contact">Contact Us</NavLink></li>
                 <li>
                     <div className="dropdown-container">
                         <NavLink className="dropdown-navbar" to="/">Dropdown</NavLink>
