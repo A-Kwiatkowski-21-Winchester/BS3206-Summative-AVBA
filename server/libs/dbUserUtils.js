@@ -8,6 +8,15 @@ const dbName = "Users";
 const collectionName = "UserData";
 const idPrefix = "AH-";
 
+let env;
+try {
+    env = require("../env/environment");
+} catch {
+    throw Error(
+        "Unable to load './env/environment.js'. Have you filled out a copy of the template and renamed it?"
+    );
+}
+
 //#region Internal tools
 
 /**
@@ -48,11 +57,50 @@ function generateID(comboString, truncation = 9, numeric = true) {
     return shortInt;
 }
 
+function hashString(string) {}
+
+function encryptString(plaintext) {
+    if (!env.secretKey)
+        throw Error("'secretKey' not configured in environment.js");
+    let keyBytes = Buffer.from(env.secretKey, "base64");
+    let iv = crypto.randomBytes(16).toString("base64");
+    let cipherer = crypto.createCipheriv("aes-256-gcm", keyBytes, iv);
+    let ciphertext = cipherer.update(plaintext, "utf-8", "base64"); // Add string to be encrypted
+    ciphertext += cipherer.final("base64"); // Finalise the encryption
+    let tag = cipherer.getAuthTag().toString("base64");
+    return { ciphertext, iv, tag };
+}
+
+function decryptString(ciphertext, iv, tag = null) {
+    if (!env.secretKey)
+        throw Error("'secretKey' not configured in environment.js");
+    let keyBytes = Buffer.from(env.secretKey, "base64");
+    let decipherer = crypto.createDecipheriv("aes-256-gcm", keyBytes, iv);
+    if (tag) decipherer.setAuthTag(Buffer.from(tag, "base64"));
+    let plaintext = decipherer.update(ciphertext, "base64", "utf-8"); // Add string to be decrypted
+    plaintext += decipherer.final("utf-8"); // Finalise the decryption
+    return plaintext;
+}
+
+//TODO: Remove these
+//TESTS
+let encryptionResult = encryptString("this is a story all about how");
+console.log(encryptionResult.ciphertext);
+console.log(encryptionResult.iv);
+console.log(encryptionResult.tag);
+
+console.log(
+    decryptString(
+        encryptionResult.ciphertext,
+        encryptionResult.iv,
+        encryptionResult.tag
+    )
+);
 
 /**
  * Contains the required fields for the creation of a new user.
  * Format: `<field>: [<type>, <hint>]`
-*/
+ */
 const requiredFields = {
     title: ["string"],
     firstName: ["string"],
@@ -141,13 +189,8 @@ function createUser(userObject) {
     console.log("Insertion complete.");
 }
 
-let testdate = new Date(1714510595 * 1000);
-console.log(testdate);
-console.log(typeof testdate);
-console.log(testdate.toJSON());
-
 //TODO: remove test below
-createUser({
+/* createUser({
     title: "Mx.",
     firstName: "Peter",
     lastName: "Dinkley",
@@ -159,13 +202,12 @@ createUser({
         "1081222ec66cd7649f3f310bc0170f9195b9a79b693de38acaf68adbe23dcf59",
     isAdmin: false,
 });
-
+ */
 function getUserDetails(id, fieldList) {}
 
 function updateUserDetails(id, fieldValueObject) {}
 
 function destroyUser(id) {}
-
 
 module.exports = {
     sex,
