@@ -1,4 +1,4 @@
-let dbconnect = require("../libs/dbconnect");
+let dbconnect = require("./dbconnect");
 let { md5 } = require("js-md5");
 let bcrypt = require("bcrypt");
 let crypto = require("crypto");
@@ -41,7 +41,6 @@ function isValidDate(date) {
 
 /**
  * Generates an ID number by hashing a provided string, then converting the hash result to decimal.
- *
  * @param {string}  comboString The message to be turned into an ID. To prevent collision,
  *                              this should be something like "`<name><DOB><email>`"
  * @param {int}     truncation  *(optional)* The length of the returned value. Default is `9`.
@@ -57,11 +56,36 @@ function generateID(comboString, truncation = 9, numeric = true) {
     return shortInt;
 }
 
-function hashString(string) {}
+/** The work factor for the bcrypt hash (for regular user). */
+const hashWorkFactor = 12;
 
+/**
+ * Hashes a string using bcrypt.
+ * @param {string} string The plaintext string to be hashed.
+ * @param {boolean} superuser *(optional)* Whether to use "superuser"-level work factor for hashing. Default is `false`.
+ * @returns A bcrypt hash in the format '`$<ver>$<rounds>$<saltVal(22)><hashVal>`'.
+ */
+function hashString(string, superuser = false) {
+    let saltRounds = hashWorkFactor;
+    if (superuser) saltRounds += 2; // Would increase 250ms of work time to 1s (*4)
+    let startTime = new Date();
+    let hashString = bcrypt.hashSync(string, saltRounds);
+    let endTime = new Date();
+    console.log(`Hashing took ${endTime - startTime}ms`);
+    return hashString;
+}
+
+/**
+ * Encrypts a string using AES-256(-GCM), using the secret key configured in `environment.js`.
+ * @param {string} plaintext The string to be encrypted.
+ * @returns {object} An object containing: `ciphertext`, `iv`, and `tag`.
+ * For a precombined string, use `encryptStringFull()`.
+ */
 function encryptString(plaintext) {
     if (!env.secretKey)
-        throw Error("'secretKey' not configured in environment.js");
+        throw Error("'secretKey' not configured in environment.js .");
+    if (plaintext == undefined || plaintext === "")
+        throw Error("Cannot encrypt empty plaintext.");
     let keyBytes = Buffer.from(env.secretKey, "base64");
     let iv = crypto.randomBytes(16).toString("base64");
     let cipherer = crypto.createCipheriv("aes-256-gcm", keyBytes, iv);
@@ -71,31 +95,87 @@ function encryptString(plaintext) {
     return { ciphertext, iv, tag };
 }
 
-function decryptString(ciphertext, iv, tag = null) {
+/**
+ * Encrypts a string using AES-256(-GCM), using the secret key configured in `environment.js`.
+ * @param {string} plaintext The string to be encrypted.
+ * @returns {string} A precombined string in the format: '`<ciphertext>;<iv>;<tag>`'.
+ * For a separated object, use `encryptString()`.
+ */
+function encryptStringFull(plaintext) {
+    let cipherObject = encryptString(plaintext);
+    fullCipherString = Object.values(cipherObject).join(";");
+    return fullCipherString;
+}
+
+/**
+ * Decrypts a string using AES-256(-GCM), using the secret key configured in `environment.js`.
+ * Accepts the ciphertext, iv, and tag separately. For a precombined string, use `decryptStringFull()`.
+ * @param {string} ciphertext The encrypted string
+ * @param {string} iv The initialization vector (iv) used for the original encryption
+ * @param {string} tag The authentication tag generated with the original encryption
+ * @returns {string} The original plaintext
+ */
+function decryptString(ciphertext, iv, tag) {
     if (!env.secretKey)
         throw Error("'secretKey' not configured in environment.js");
+    if (ciphertext == undefined || ciphertext === "")
+        throw Error("Cannot decrypt empty ciphertext.");
+    if (iv == undefined || iv === "")
+        throw Error("Cannot decrypt with empty initialization vector (iv).");
+    if (tag == undefined || tag === "")
+        throw Error("Cannot decrypt with empty authentication tag.");
     let keyBytes = Buffer.from(env.secretKey, "base64");
     let decipherer = crypto.createDecipheriv("aes-256-gcm", keyBytes, iv);
-    if (tag) decipherer.setAuthTag(Buffer.from(tag, "base64"));
+    decipherer.setAuthTag(Buffer.from(tag, "base64"));
     let plaintext = decipherer.update(ciphertext, "base64", "utf-8"); // Add string to be decrypted
     plaintext += decipherer.final("utf-8"); // Finalise the decryption
     return plaintext;
 }
 
+/**
+ * Decrypts a string using AES-256(-GCM), using the secret key configured in `environment.js`.
+ * Accepts a precombined string. For individual elements, use `decryptString()`.
+ * @param {string} fullCiphertext The precombined cipher string in the format: '`<ciphertext>;<iv>;<tag>`'.
+ * @returns {string} The original plaintext
+ */
+function decryptStringFull(fullCiphertext) {
+    let cipherPieces = fullCiphertext.split(";");
+    if (cipherPieces.length != 3) {
+        throw Error(
+            "Invalid fullCiphertext. Should be in the format: " +
+                "'<ciphertext>;<iv>;<tag>'"
+        );
+    }
+    let plaintext = decryptString(
+        cipherPieces[0] /*ciphertext*/,
+        cipherPieces[1] /*iv*/,
+        cipherPieces[2] /*tag*/
+    );
+    return plaintext;
+}
+
 //TODO: Remove these
-//TESTS
-let encryptionResult = encryptString("this is a story all about how");
+//#region TESTS
+const teststring = "meow";
+let hashstrr = hashString(teststring);
+// let encryptionResult = encryptString(hashstrr);
+let encryptionResult = encryptStringFull(hashstrr);
+/*
 console.log(encryptionResult.ciphertext);
 console.log(encryptionResult.iv);
 console.log(encryptionResult.tag);
 
-console.log(
-    decryptString(
-        encryptionResult.ciphertext,
-        encryptionResult.iv,
-        encryptionResult.tag
-    )
-);
+let decryptionResult = decryptString(
+    encryptionResult.ciphertext,
+    encryptionResult.iv,
+    encryptionResult.tag
+);*/
+console.log(encryptionResult);
+let decryptionResult = decryptStringFull(encryptionResult);
+console.log(decryptionResult);
+console.log(`Match? : ${bcrypt.compareSync(teststring, decryptionResult)}`);
+
+//#endregion
 
 /**
  * Contains the required fields for the creation of a new user.
