@@ -1,5 +1,4 @@
 let dbconnect = require("./dbconnect");
-let { md5 } = require("js-md5");
 let bcrypt = require("bcrypt");
 let crypto = require("crypto");
 
@@ -52,7 +51,7 @@ function isEmpty(string) {
  *                              If `false`, returned value will be a hash. Default is `true`.
  */
 function generateID(comboString, truncation = 9, numeric = true) {
-    let fullHash = md5.hex(comboString);
+    let fullHash = crypto.createHash("md5").update(comboString).digest("hex");
     let shortHash = fullHash.slice(0, truncation);
     if (!numeric) return shortHash;
     let convertInt = Number.parseInt(shortHash, 16);
