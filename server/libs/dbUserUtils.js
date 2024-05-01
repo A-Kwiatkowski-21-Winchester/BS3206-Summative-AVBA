@@ -39,6 +39,10 @@ function isValidDate(date) {
     );
 }
 
+function isEmpty(string) {
+    return string == undefined || string === "";
+}
+
 /**
  * Generates an ID number by hashing a provided string, then converting the hash result to decimal.
  * @param {string}  comboString The message to be turned into an ID. To prevent collision,
@@ -63,7 +67,7 @@ const hashWorkFactor = 12;
  * Hashes a string using bcrypt.
  * @param {string} string The plaintext string to be hashed.
  * @param {boolean} superuser *(optional)* Whether to use "superuser"-level work factor for hashing. Default is `false`.
- * @returns A bcrypt hash in the format '`$<ver>$<rounds>$<saltVal(22)><hashVal>`'.
+ * @returns A bcrypt hash in the format '`$<ver>$<rounds>$<saltVal(22)><hashVal>`'. Store this all together.
  */
 function hashString(string, superuser = false) {
     let saltRounds = hashWorkFactor;
@@ -84,8 +88,7 @@ function hashString(string, superuser = false) {
 function encryptString(plaintext) {
     if (!env.secretKey)
         throw Error("'secretKey' not configured in environment.js .");
-    if (plaintext == undefined || plaintext === "")
-        throw Error("Cannot encrypt empty plaintext.");
+    if (isEmpty(plaintext)) throw Error("Cannot encrypt empty plaintext.");
     let keyBytes = Buffer.from(env.secretKey, "base64");
     let iv = crypto.randomBytes(16).toString("base64");
     let cipherer = crypto.createCipheriv("aes-256-gcm", keyBytes, iv);
@@ -118,11 +121,10 @@ function encryptStringFull(plaintext) {
 function decryptString(ciphertext, iv, tag) {
     if (!env.secretKey)
         throw Error("'secretKey' not configured in environment.js");
-    if (ciphertext == undefined || ciphertext === "")
-        throw Error("Cannot decrypt empty ciphertext.");
-    if (iv == undefined || iv === "")
+    if (isEmpty(ciphertext)) throw Error("Cannot decrypt empty ciphertext.");
+    if (isEmpty(iv))
         throw Error("Cannot decrypt with empty initialization vector (iv).");
-    if (tag == undefined || tag === "")
+    if (isEmpty(tag))
         throw Error("Cannot decrypt with empty authentication tag.");
     let keyBytes = Buffer.from(env.secretKey, "base64");
     let decipherer = crypto.createDecipheriv("aes-256-gcm", keyBytes, iv);
@@ -153,29 +155,6 @@ function decryptStringFull(fullCiphertext) {
     );
     return plaintext;
 }
-
-//TODO: Remove these
-//#region TESTS
-const teststring = "meow";
-let hashstrr = hashString(teststring);
-// let encryptionResult = encryptString(hashstrr);
-let encryptionResult = encryptStringFull(hashstrr);
-/*
-console.log(encryptionResult.ciphertext);
-console.log(encryptionResult.iv);
-console.log(encryptionResult.tag);
-
-let decryptionResult = decryptString(
-    encryptionResult.ciphertext,
-    encryptionResult.iv,
-    encryptionResult.tag
-);*/
-console.log(encryptionResult);
-let decryptionResult = decryptStringFull(encryptionResult);
-console.log(decryptionResult);
-console.log(`Match? : ${bcrypt.compareSync(teststring, decryptionResult)}`);
-
-//#endregion
 
 /**
  * Contains the required fields for the creation of a new user.
@@ -233,7 +212,7 @@ function createUser(userObject) {
 
     for (const [field, value] of Object.entries(requiredFields)) {
         // If field does not exist
-        if (userObject[field] == undefined || userObject[field] === "")
+        if (isEmpty(userObject[field]))
             throw Error(`Field '${field}' is required but was not found.`);
 
         // If field does not match required type
@@ -261,39 +240,56 @@ function createUser(userObject) {
 
     console.log("Inserting into DB...");
     prepClient();
-    dbconnect.globals.client
+    let insertPromise = dbconnect.globals.client
         .db(dbName)
         .collection(collectionName)
         .insertOne(userObject);
-    dbconnect.closeClient();
+    insertPromise.finally(() => dbconnect.closeClient());
     console.log("Insertion complete.");
 }
 
-//TODO: remove test below
-/* createUser({
-    title: "Mx.",
-    firstName: "Peter",
-    lastName: "Dinkley",
-    dob: new Date("2024-05-06"),
-    sex: sex.MALE,
-    email: "bark@dog.com",
-    phone: "07000000000",
-    password:
-        "1081222ec66cd7649f3f310bc0170f9195b9a79b693de38acaf68adbe23dcf59",
-    isAdmin: false,
-});
+/**
+ *
+ * @param {string} identifier
+ * @param {"id"|"email"} identifierForm
+ * @returns
  */
-function getUserDetails(id, fieldList) {}
+async function getUserWhole(identifier, identifierForm = "id") {
+    if (isEmpty(identifier)) throw Error("No ID provided to get user with.");
+    let validIDForms = ["id", "email"];
+    if (!(validIDForms.includes(identifierForm)))
+        throw Error(
+            `Invalid identifier form (should be one of: ${validIDForms})`
+        );
+    prepClient();
+    let filter = {[identifierForm]: identifier};
+    console.log(filter)
+    let findPromise = dbconnect.globals.client
+        .db(dbName)
+        .collection(collectionName)
+        .findOne(filter);
+    findPromise.finally(() => dbconnect.closeClient());
+    return await findPromise;
+}
 
-function updateUserDetails(id, fieldValueObject) {}
+function updateUserWhole(userObject) {
+    //TODO: Create updateUserWhole
+}
 
-function destroyUser(id) {}
+function destroyUser(id) {
+    //TODO: Create destroyUser
+}
 
 module.exports = {
     sex,
+    hashString,
+    encryptString,
+    encryptStringFull,
+    decryptString,
+    decryptStringFull,
     listRequiredFields,
     createUser,
-    getUserDetails,
-    updateUserDetails,
+    getUserWhole,
+    updateUserWhole,
     destroyUser,
 };
