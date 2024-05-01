@@ -1,6 +1,7 @@
 let dbconnect = require("./dbconnect");
 let bcrypt = require("bcrypt");
 let crypto = require("crypto");
+const { isArray } = require("util");
 
 // Constants
 const dbName = "Users";
@@ -79,9 +80,17 @@ function hashString(string, superuser = false) {
 }
 
 /**
+ * Represents a CipherObject, which contains the elements created after encryption.
+ * @typedef {object} CipherObject
+ * @property {string} ciphertext An encrypted string
+ * @property {string} iv The initialization vector (iv) used for the encryption
+ * @property {string} tag The authorization tag used for verification when decrypting
+ */
+
+/**
  * Encrypts a string using AES-256(-GCM), using the secret key configured in `environment.js`.
  * @param {string} plaintext The string to be encrypted.
- * @returns {object} An object containing: `ciphertext`, `iv`, and `tag`.
+ * @returns {CipherObject} An object containing: `ciphertext`, `iv`, and `tag`.
  * For a precombined string, use `encryptStringFull()`.
  */
 function encryptString(plaintext) {
@@ -92,7 +101,7 @@ function encryptString(plaintext) {
     let iv = crypto.randomBytes(16).toString("base64");
     let cipherer = crypto.createCipheriv("aes-256-gcm", keyBytes, iv);
     let ciphertext = cipherer.update(plaintext, "utf-8", "base64"); // Add string to be encrypted
-    ciphertext += cipherer.final("base64"); // Finalise the encryption
+    ciphertext += cipherer.final("base64"); // Finalize the encryption
     let tag = cipherer.getAuthTag().toString("base64");
     return { ciphertext, iv, tag };
 }
@@ -129,7 +138,7 @@ function decryptString(ciphertext, iv, tag) {
     let decipherer = crypto.createDecipheriv("aes-256-gcm", keyBytes, iv);
     decipherer.setAuthTag(Buffer.from(tag, "base64"));
     let plaintext = decipherer.update(ciphertext, "base64", "utf-8"); // Add string to be decrypted
-    plaintext += decipherer.final("utf-8"); // Finalise the decryption
+    plaintext += decipherer.final("utf-8"); // Finalize the decryption
     return plaintext;
 }
 
@@ -153,6 +162,23 @@ function decryptStringFull(fullCiphertext) {
         cipherPieces[2] /*tag*/
     );
     return plaintext;
+}
+
+/**
+ * Bcrypt hashes and encrypts a password using environment secret key.
+ * @param {string} password The password to secure. Preferably simply hashed already but will accept plaintext.
+ * @param {boolean} superuser *(optional)* Whether to use "superuser"-level hashing for the string. Default is `false`.
+ * @param {boolean} cipherAsString *(optional)* Whether to return the cipher as a precombined string. Default is `true`.
+ * @returns {string|CipherObject} A precomibined cipherstring, or a CipherObject containing the encrypted pieces
+ */
+function securePassword(password, superuser = false, cipherAsString = true) {
+    let bcryptHashedPassword = hashString(password, superuser);
+    if (cipherAsString) {
+        let cipherString = encryptStringFull(bcryptHashedPassword);
+        return cipherString;
+    }
+    let cipherObj = encryptString(bcryptHashedPassword);
+    return cipherObj;
 }
 
 /**
@@ -192,24 +218,8 @@ function listRequiredFields() {
     return JSON.stringify(requiredFields);
 }
 
-/**
- * Creates a new user on the database.
- * @param {object} userObject A dictionary containing the values to insert for the new user.
- * To see the minimum required fields and their types, run:
- * ```javascript
- * console.log(dbUserUtils.listRequiredFields())
- * ```
- * or see {@link requiredFields}.
- * @returns {number} The ID of the newly created user.
- * @throws Various `Error`s when fields are missing or invalid.
- */
-function createUser(userObject) {
-    if ("id" in userObject)
-        throw Error(
-            "ID should not be included in new user data; it is generated automatically."
-        );
-
-    for (const [field, value] of Object.entries(requiredFields)) {
+function checkUserReqFields(userObject) {
+    for (const field of Object.keys(requiredFields)) {
         // If field does not exist
         if (isEmpty(userObject[field]))
             throw Error(`Field '${field}' is required but was not found.`);
@@ -229,6 +239,26 @@ function createUser(userObject) {
 
     if (!isValidDate(userObject["dob"]))
         throw Error(`Date for 'dob' is invalid.`);
+}
+
+/**
+ * Creates a new user on the database.
+ * @param {object} userObject A dictionary containing the values to insert for the new user.
+ * To see the minimum required fields and their types, run:
+ * ```javascript
+ * console.log(dbUserUtils.listRequiredFields())
+ * ```
+ * or see {@link requiredFields}.
+ * @returns {number} The ID of the newly created user.
+ * @throws Various `Error`s when fields are missing or invalid.
+ */
+function createUser(userObject) {
+    if ("id" in userObject)
+        throw Error(
+            "ID should not be included in new user data; it is generated automatically."
+        );
+
+    checkUserReqFields(userObject);
 
     genID = generateID(
         userObject.firstName +
@@ -236,6 +266,7 @@ function createUser(userObject) {
             userObject.dob.toString() +
             userObject.email
     );
+    //TODO: Add ID to user
 
     console.log("Inserting into DB...");
     prepClient();
@@ -256,13 +287,13 @@ function createUser(userObject) {
 async function getUserWhole(identifier, identifierForm = "id") {
     if (isEmpty(identifier)) throw Error("No ID provided to get user with.");
     let validIDForms = ["id", "email"];
-    if (!(validIDForms.includes(identifierForm)))
+    if (!validIDForms.includes(identifierForm))
         throw Error(
             `Invalid identifier form (should be one of: ${validIDForms})`
         );
     prepClient();
-    let filter = {[identifierForm]: identifier};
-    console.log(filter)
+    let filter = { [identifierForm]: identifier };
+    console.log(filter);
     let findPromise = dbconnect.globals.client
         .db(dbName)
         .collection(collectionName)
@@ -271,12 +302,78 @@ async function getUserWhole(identifier, identifierForm = "id") {
     return await findPromise;
 }
 
-function updateUserWhole(userObject) {
-    //TODO: Create updateUserWhole
+async function updateUserWhole(userObject) {
+    if (isEmpty(userObject["id"]))
+        throw Error(
+            "No ID found in userObject; one should be included to update user. " +
+                "If this is a new user, use createUser() ."
+        );
+    checkUserReqFields(userObject);
+    prepClient();
+    // Removes auto-generated _ID, one will be recreated for the new document
+    delete userObject["_id"];
+    let updatePromise = dbconnect.globals.client
+        .db(dbName)
+        .collection(collectionName)
+        .findOneAndReplace({ id: userObject.id }, userObject);
+    updatePromise.finally(() => dbconnect.closeClient());
+    let promiseResult = await updatePromise;
+    if (!promiseResult)
+        throw Error(
+            `User with ID '${userObject.id}' does not exist. Could not update.`
+        );
+    return true;
+}
+
+/**
+ *
+ * @param {string} id
+ * @param {string} fieldName
+ * @param {Array|object} data
+ */
+async function addUserData(id, fieldName, data) {
+    //TODO: Figure out how someone would update singular user detail, like email. isArray flag?
+
+    if (isEmpty(id)) throw Error("ID is required but was not provided.");
+    if (isEmpty(fieldName))
+        throw Error("fieldName is required but was not provided.");
+    if (isEmpty(data))
+        throw Error(
+            "Data is required but was not provided. To remove data, use removeUserData()"
+        );
+
+    if (!Array.isArray(data)) data = [data]; // If not array, convert to array
+
+    prepClient();
+    let updatePromise = dbconnect.globals.client
+        .db(dbName)
+        .collection(collectionName)
+        .findOneAndUpdate({ id: id }, { $push: { tag: { $each: data } } });
+    updatePromise.finally(() => dbconnect.closeClient());
+    let promiseResult = await updatePromise;
+    if (!promiseResult)
+        throw Error(
+            `User with ID '${userObject.id}' does not exist. Could not update.`
+        );
+    return true;
+}
+
+function removeUserData(id, fieldName) {
+    if (requiredFields.includes(fieldName))
+        throw Error(`Field ${fieldName} is required and cannot be removed.`);
+    //TODO: Create removeUserData
 }
 
 function destroyUser(id) {
     //TODO: Create destroyUser
+}
+
+function checkPassword(id, password) {
+    //TODO: Create checkPassword
+}
+
+function changePassword(id, newPassword) {
+    //TODO: Create changePassword
 }
 
 module.exports = {

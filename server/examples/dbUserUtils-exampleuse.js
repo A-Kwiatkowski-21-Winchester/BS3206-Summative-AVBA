@@ -1,12 +1,11 @@
 // VERY ROUGH DRAFT
 // ****************
 
-let dbUserUtils = require("../libs/dbUserUtils")
-let bcrypt = require("bcrypt")
-
+let dbUserUtils = require("../libs/dbUserUtils");
+let bcrypt = require("bcrypt");
 
 //TODO: remove test below
-/* dbUserUtils.createUser({
+dbUserUtils.createUser({
     title: "Mx.",
     firstName: "Peter",
     lastName: "Dinkley",
@@ -18,15 +17,11 @@ let bcrypt = require("bcrypt")
         "1081222ec66cd7649f3f310bc0170f9195b9a79b693de38acaf68adbe23dcf59",
     isAdmin: false,
 });
- */
-
-dbUserUtils.getUserWhole("bark@dog.com", "email").then((result) => console.log(result))
 
 
-
-
-
-
+dbUserUtils
+    .getUserWhole("bark@dog.com", "email")
+    .then((result) => console.log(result));
 
 
 //TODO: Remove these
