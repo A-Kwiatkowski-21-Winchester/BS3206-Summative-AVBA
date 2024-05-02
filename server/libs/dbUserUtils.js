@@ -57,6 +57,21 @@ function isEmpty(string) {
 }
 
 /**
+ * Compares strings to determine if they are semantically (case insensitively) equal.
+ * @param {string} string1 The first string to compare.
+ * @param {string} string2 The second string to compare.
+ * @param {boolean} trim *(optional)* Whether to trim whitespace from the strings before comparison (default `true`).
+ * @returns
+ */
+function isSemEqual(string1, string2, trim = true) {
+    if (trim) [string1, string2] = [string1.trim(), string2.trim()];
+    let semEqual =
+        string1.localeCompare(string2, undefined, { sensitivity: "accent" }) ===
+        0;
+    return semEqual;
+}
+
+/**
  * Generates an ID number by hashing a provided string, then converting the hash result to decimal.
  * @param {string}  comboString The message to be turned into an ID. To prevent collision,
  *                              this should be something like "`<name><DOB><email>`"
@@ -292,10 +307,10 @@ function createUser(userObject) {
 }
 
 /**
- *
+ * Retrieves an entire userObject, with all data properties
  * @param {string} identifier
  * @param {"_id"|"email"} identifierForm
- * @returns
+ * @returns A Promise which will resolve to a userObject document.
  */
 async function getUserWhole(identifier, identifierForm = "_id") {
     if (isEmpty(identifier)) throw Error("No ID provided to get user with.");
@@ -370,7 +385,7 @@ async function addUserData(
                 "(no way to not replace a singular value)."
         );
     if (fieldName.match(idRegex)) throw Error("Field 'ID' cannot be changed.");
-    if (fieldName.localeCompare("password"))
+    if (isSemEqual(fieldName, "password"))
         throw Error(
             "Field 'password' cannot be changed this way. " +
                 "Use changePassword()."
@@ -399,10 +414,12 @@ async function addUserData(
         console.log(
             "Existing data is not already in array structure, converting..."
         );
-        let convertUpdatePromise = getCollection(userDataCollection) // ↓ Uses $set (aggregation) to use existing value (updateFilter is in [ ])
-            .findOneAndUpdate({ _id: id }, [
-                { $set: { [fieldName]: [`$${fieldName}`].concat(data) } },
-            ]);
+        let convertUpdatePromise = getCollection(
+            userDataCollection
+        ).findOneAndUpdate({ _id: id }, [
+            // ↓ Uses $set (aggregation) to use existing value (updateFilter is in [ ])
+            { $set: { [fieldName]: [`$${fieldName}`].concat(data) } },
+        ]);
         promiseResult = await convertUpdatePromise;
     } finally {
         dbconnect.closeClient();
@@ -412,6 +429,37 @@ async function addUserData(
         throw Error(`User with ID '${id}' does not exist. Could not update.`);
     console.log(`Updated data in field ${fieldName} for user with id '${id}'.`);
 }
+
+/**
+ * Gets the value of a field from a user.
+ * @param {string} identifier An identifier for the user, typically the ID.
+ * @param {string|string} fieldName Which field to retrieve the value for.
+ * @param {"_id"|"email"} identifierForm What the identifier parameter represents (default `"_id"`).
+ * `"_id"` is recommended, as it is guaranteed to be unique. If `"email"` is used, it will return the first match.
+ * @returns A Promise which will resolve to a value. If the resolved value is `null`,
+ * either the identifier matched no users, or the field did not exist.
+ */
+async function getUserData(id, fieldName, identifierForm = "_id") {
+    if (isSemEqual(fieldName, "password"))
+        throw Error(
+            "Field 'password' is encrypted and should not be retrieved this way. " +
+                "To check a value against the stored password, use checkPassword()."
+        );
+    prepClient();
+    let getPromise = getCollection(userDataCollection).findOne(
+        { _id: id },
+        {
+            projection: {
+                _id: 0,
+                [fieldName]: 1,
+            },
+        }
+    );
+    getPromise.finally(() => dbconnect.closeClient());
+    return await getPromise;
+}
+
+getUserData("AH-340287912", "sex").then((result) => console.log(result));
 
 async function removeUserData(id, fieldName) {
     if (isEmpty(id)) throw Error("ID is required but was not provided.");
