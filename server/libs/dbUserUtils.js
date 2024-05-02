@@ -5,7 +5,7 @@ const { isArray } = require("util");
 
 // Constants
 const dbName = "Users";
-const collectionName = "UserData";
+const userDataCollection = "UserData";
 const idPrefix = "AH-";
 
 let env;
@@ -27,6 +27,11 @@ try {
 function prepClient() {
     dbconnect.generateClient();
     dbconnect.openClient();
+}
+
+function getCollection(name) {
+    let collection = dbconnect.globals.client.db(dbName).collection(name);
+    return collection;
 }
 
 /**
@@ -272,10 +277,7 @@ function createUser(userObject) {
 
     console.log("Inserting into DB...");
     prepClient();
-    let insertPromise = dbconnect.globals.client
-        .db(dbName)
-        .collection(collectionName)
-        .insertOne(userObject);
+    let insertPromise = getCollection(userDataCollection).insertOne(userObject);
     insertPromise.finally(() => dbconnect.closeClient());
     console.log("Insertion complete.");
 }
@@ -296,16 +298,13 @@ async function getUserWhole(identifier, identifierForm = "id") {
     prepClient();
     let filter = { [identifierForm]: identifier };
     console.log(filter);
-    let findPromise = dbconnect.globals.client
-        .db(dbName)
-        .collection(collectionName)
-        .findOne(filter);
+    let findPromise = getCollection(userDataCollection).findOne(filter);
     findPromise.finally(() => dbconnect.closeClient());
     return await findPromise;
 }
 
 /**
- *
+ * NOTE: NOT RECOMMENDED.
  * @param {*} userObject
  * @returns
  */
@@ -319,10 +318,10 @@ async function updateUserWhole(userObject) {
     prepClient();
     // Removes auto-generated _ID, one will be recreated for the new document
     delete userObject["_id"];
-    let updatePromise = dbconnect.globals.client
-        .db(dbName)
-        .collection(collectionName)
-        .findOneAndReplace({ id: userObject.id }, userObject);
+    let updatePromise = getCollection(userDataCollection).findOneAndReplace(
+        { id: userObject.id },
+        userObject
+    );
     updatePromise.finally(() => dbconnect.closeClient());
     let promiseResult = await updatePromise;
     if (!promiseResult)
@@ -382,10 +381,10 @@ async function addUserData(
     let updateFilter = { [action]: dataAction };
 
     prepClient();
-    let updatePromise = dbconnect.globals.client
-        .db(dbName)
-        .collection(collectionName)
-        .findOneAndUpdate({ id: id }, updateFilter);
+    let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
+        { id: id },
+        updateFilter
+    );
     let promiseResult;
     try {
         promiseResult = await updatePromise;
@@ -395,10 +394,7 @@ async function addUserData(
         console.log(
             "Existing data is not already in array structure, converting..."
         );
-        let convertUpdatePromise = dbconnect.globals.client
-            .db(dbName)
-            .collection(collectionName)
-            // ↓ Uses $set (aggregation) to use existing value (updateFilter is in [ ])
+        let convertUpdatePromise = getCollection(userDataCollection) // ↓ Uses $set (aggregation) to use existing value (updateFilter is in [ ])
             .findOneAndUpdate({ id: id }, [
                 { $set: { [fieldName]: [`$${fieldName}`].concat(data) } },
             ]);
@@ -409,11 +405,27 @@ async function addUserData(
 
     if (!promiseResult)
         throw Error(`User with ID '${id}' does not exist. Could not update.`);
-    console.log(`Updated data for user with id '${id}'.`);
+    console.log(`Updated data in field ${fieldName} for user with id '${id}'.`);
 }
 
-function removeUserData(id, fieldName) {
-    //TODO: Create removeUserData
+async function removeUserData(id, fieldName) {
+    if (fieldName.match(/[_]?id/i))
+        throw Error("Field 'ID' cannot be removed.");
+    if (fieldName in requiredFields)
+        throw Error(`Field '${fieldName}' is required and cannot be removed.`);
+
+    prepClient();
+    let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
+        { id: id },
+        { $unset: { [fieldName]: "" } }
+    );
+
+    updatePromise.finally(() => dbconnect.closeClient());
+    let promiseResult = await updatePromise;
+
+    if (!promiseResult)
+        throw Error(`User with ID '${id}' does not exist. Could not update.`);
+    console.log(`Removed data in field ${fieldName} for user with id '${id}'.`);
 }
 
 function destroyUser(id) {
