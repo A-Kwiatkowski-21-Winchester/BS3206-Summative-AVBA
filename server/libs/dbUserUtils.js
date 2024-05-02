@@ -17,6 +17,8 @@ try {
     );
 }
 
+//FIXME: Remove duplicate "ID" field and make use of existing "_ID" by manually assigning
+
 //#region Internal tools
 
 /**
@@ -302,6 +304,11 @@ async function getUserWhole(identifier, identifierForm = "id") {
     return await findPromise;
 }
 
+/**
+ *
+ * @param {*} userObject
+ * @returns
+ */
 async function updateUserWhole(userObject) {
     if (isEmpty(userObject["id"]))
         throw Error(
@@ -326,14 +333,25 @@ async function updateUserWhole(userObject) {
 }
 
 /**
- *
- * @param {string} id
- * @param {string} fieldName
- * @param {Array|object} data
+ * Adds (or replaces) a piece of data to user, including custom data.
+ * @param {string} id The ID of the user to update the data on.
+ * @param {string} fieldName The name of the field to update the value for.
+ * @param {Array|object} data The value (or array of values) to be added (or replaced with).
+ * @param {boolean} intoArray *(optional)* Whether data should be added to field array (default `false`).
+ * - `false` if the field should contain a singular value.
+ * - `true` if the field should contain an array of values.
+ * If `replace` is `false`, and the existing data is not already in array form, an extra database operation will be
+ * expended to automatically convert the existing singular value to an array before adding the data.
+ * @param {boolean} replace *(optional)* Whether the provided data should replace the existing data (default `true`).
+ * If this parameter and `intoArray` are both `false`, this command will **fail** (no way to *not* replace a singular value).
  */
-async function addUserData(id, fieldName, data) {
-    //TODO: Figure out how someone would update singular user detail, like email. isArray flag?
-
+async function addUserData(
+    id,
+    fieldName,
+    data,
+    intoArray = false,
+    replace = true
+) {
     if (isEmpty(id)) throw Error("ID is required but was not provided.");
     if (isEmpty(fieldName))
         throw Error("fieldName is required but was not provided.");
@@ -341,26 +359,60 @@ async function addUserData(id, fieldName, data) {
         throw Error(
             "Data is required but was not provided. To remove data, use removeUserData()"
         );
+    if (!intoArray && !replace)
+        throw Error(
+            "Parameters intoArray and replace cannot both be false simultaneously " +
+                "(no way to not replace a singular value)."
+        );
+    if (fieldName.match(/[_]?id/i))
+        throw Error("Field 'ID' cannot be changed.");
+    if (fieldName.localeCompare("password"))
+        throw Error(
+            "Field 'password' cannot be changed this way. " +
+                "Use changePassword()."
+        );
 
-    if (!Array.isArray(data)) data = [data]; // If not array, convert to array
+    let action = "$set";
+    if (intoArray) if (!Array.isArray(data)) data = [data]; // If not array, convert to array
+    let dataAction = { [fieldName]: data };
+    if (!replace) {
+        action = "$push";
+        if (intoArray) dataAction = { [fieldName]: { $each: data } };
+    }
+    let updateFilter = { [action]: dataAction };
 
     prepClient();
     let updatePromise = dbconnect.globals.client
         .db(dbName)
         .collection(collectionName)
-        .findOneAndUpdate({ id: id }, { $push: { tag: { $each: data } } });
-    updatePromise.finally(() => dbconnect.closeClient());
-    let promiseResult = await updatePromise;
-    if (!promiseResult)
-        throw Error(
-            `User with ID '${userObject.id}' does not exist. Could not update.`
+        .findOneAndUpdate({ id: id }, updateFilter);
+    let promiseResult;
+    try {
+        promiseResult = await updatePromise;
+    } catch (error) {
+        // If not an array error, re-throw it
+        if (!error.message.includes("must be an array")) throw err;
+        console.log(
+            "Existing data is not already in array structure, converting..."
         );
-    return true;
+        let convertUpdatePromise = dbconnect.globals.client
+            .db(dbName)
+            .collection(collectionName)
+            // ↓ Uses $set (aggregation) to use existing value (updateFilter is in [ ])
+            .findOneAndUpdate({ id: id }, [
+                { $set: { [fieldName]: [`$${fieldName}`].concat(data) } },
+            ]);
+        promiseResult = await convertUpdatePromise;
+    } finally {
+        dbconnect.closeClient();
+    }
+
+    if (!promiseResult)
+        throw Error(`User with ID '${id}' does not exist. Could not update.`);
+    console.log(`Updated data for user with id '${id}'.`);
 }
 
 function removeUserData(id, fieldName) {
-    if (requiredFields.includes(fieldName))
-        throw Error(`Field ${fieldName} is required and cannot be removed.`);
     //TODO: Create removeUserData
 }
 
