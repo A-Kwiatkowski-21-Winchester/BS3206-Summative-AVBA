@@ -45,7 +45,11 @@ function isValidDate(date) {
         !isNaN(date) // Is the date valid
     );
 }
-
+/**
+ * Tests if a string is undefined or empty.
+ * @param {string} string String to test.
+ * @returns {boolean} Whether the string is empty or not.
+ */
 function isEmpty(string) {
     return string == undefined || string === "";
 }
@@ -279,7 +283,7 @@ function createUser(userObject) {
     prepClient();
     let insertPromise = getCollection(userDataCollection).insertOne(userObject);
     insertPromise.finally(() => dbconnect.closeClient());
-    console.log("Insertion complete.");
+    insertPromise.then(() => console.log("Insertion complete."));
 }
 
 /**
@@ -409,6 +413,9 @@ async function addUserData(
 }
 
 async function removeUserData(id, fieldName) {
+    if (isEmpty(id)) throw Error("ID is required but was not provided.");
+    if (isEmpty(fieldName))
+        throw Error("fieldName is required but was not provided.");
     if (fieldName.match(/[_]?id/i))
         throw Error("Field 'ID' cannot be removed.");
     if (fieldName in requiredFields)
@@ -428,8 +435,16 @@ async function removeUserData(id, fieldName) {
     console.log(`Removed data in field ${fieldName} for user with id '${id}'.`);
 }
 
-function destroyUser(id) {
-    //TODO: Create destroyUser
+async function destroyUser(id) {
+    prepClient();
+    let destroyPromise = getCollection(userDataCollection).findOneAndDelete({
+        id: id,
+    });
+    destroyPromise.finally(() => dbconnect.closeClient());
+    let promiseResult = await destroyPromise;
+    if (!promiseResult)
+        throw Error(`User with ID '${id}' does not exist. Could not destroy.`);
+    console.log(`Destroyed user with id '${id}'.`);
 }
 
 function checkPassword(id, password) {
