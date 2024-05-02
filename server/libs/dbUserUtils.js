@@ -433,33 +433,34 @@ async function addUserData(
 /**
  * Gets the value of a field from a user.
  * @param {string} identifier An identifier for the user, typically the ID.
- * @param {string|string} fieldName Which field to retrieve the value for.
+ * @param {string|string[]} fieldNames Which field(s) to retrieve the value(s) for.
  * @param {"_id"|"email"} identifierForm What the identifier parameter represents (default `"_id"`).
  * `"_id"` is recommended, as it is guaranteed to be unique. If `"email"` is used, it will return the first match.
- * @returns A Promise which will resolve to a value. If the resolved value is `null`,
+ * @returns A Promise which will resolve an object containing the requested value(s). If the resolved value is `null`,
  * either the identifier matched no users, or the field did not exist.
  */
-async function getUserData(id, fieldName, identifierForm = "_id") {
-    if (isSemEqual(fieldName, "password"))
-        throw Error(
-            "Field 'password' is encrypted and should not be retrieved this way. " +
-                "To check a value against the stored password, use checkPassword()."
-        );
+async function getUserData(identifier, fieldNames, identifierForm = "_id") {
+    if (!Array.isArray(fieldNames)) fieldNames = [fieldNames]; // If not array, convert to array
+    let projectionObj = {
+        _id: 0,
+    };
+    fieldNames.forEach((fieldName) => {
+        if (isSemEqual(fieldName, "password"))
+            throw Error(
+                "Field 'password' is encrypted and should not be retrieved this way. " +
+                    "To check a value against the stored password, use checkPassword()."
+            );
+        projectionObj[fieldName] = 1;
+    });
+
     prepClient();
     let getPromise = getCollection(userDataCollection).findOne(
-        { _id: id },
-        {
-            projection: {
-                _id: 0,
-                [fieldName]: 1,
-            },
-        }
+        { [identifierForm]: identifier },
+        { projection: projectionObj }
     );
     getPromise.finally(() => dbconnect.closeClient());
     return await getPromise;
 }
-
-getUserData("AH-340287912", "sex").then((result) => console.log(result));
 
 async function removeUserData(id, fieldName) {
     if (isEmpty(id)) throw Error("ID is required but was not provided.");
