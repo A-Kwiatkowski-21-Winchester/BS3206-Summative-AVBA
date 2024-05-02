@@ -19,8 +19,6 @@ try {
     );
 }
 
-//FIXME: Remove duplicate "ID" field and make use of existing "_ID" by manually assigning
-
 //#region Internal tools
 
 /**
@@ -299,6 +297,8 @@ function createUser(userObject) {
         );
     userObject["_id"] = genID;
 
+    //FIXME: Encrypt password before passing into DB
+
     console.log("Inserting into DB...");
     prepClient();
     let insertPromise = getCollection(userDataCollection).insertOne(userObject);
@@ -339,6 +339,7 @@ async function updateUserWhole(userObject) {
         );
     checkUserReqFields(userObject);
     prepClient();
+    //FIXME: make sure to discard any changes to password and replace with database one
     let updatePromise = getCollection(userDataCollection).findOneAndReplace(
         { _id: userObject.id },
         userObject
@@ -462,6 +463,11 @@ async function getUserData(identifier, fieldNames, identifierForm = "_id") {
     return await getPromise;
 }
 
+/**
+ * Removes a field and its data from a user.
+ * @param {string} id The ID of the user to remove data from
+ * @param {string} fieldName The name of the field to remove from the user.
+ */
 async function removeUserData(id, fieldName) {
     if (isEmpty(id)) throw Error("ID is required but was not provided.");
     if (isEmpty(fieldName))
@@ -483,6 +489,10 @@ async function removeUserData(id, fieldName) {
     console.log(`Removed data in field ${fieldName} for user with id '${id}'.`);
 }
 
+/**
+ * Destroys a user record from the database. Irreversible.
+ * @param {string} id The ID of the user to destroy.
+ */
 async function destroyUser(id) {
     prepClient();
     let destroyPromise = getCollection(userDataCollection).findOneAndDelete({
@@ -495,12 +505,60 @@ async function destroyUser(id) {
     console.log(`Destroyed user with id '${id}'.`);
 }
 
-function checkPassword(id, password) {
-    //TODO: Create checkPassword
+async function checkPassword(id, password) {
+    if (isEmpty(id)) throw Error("ID is required but was not provided.");
+    if (isEmpty(password))
+        throw Error(
+            "Password is required for comparison but was not provided."
+        );
+
+    prepClient();
+    let getPromise = getCollection(userDataCollection).findOne(
+        { _id: id },
+        {
+            projection: {
+                _id: 0,
+                password: 1,
+            },
+        }
+    );
+    getPromise.finally(() => dbconnect.closeClient());
+    let promiseResult = await getPromise;
+    if (!promiseResult)
+        throw Error(
+            `User with ID '${id}' does not exist. Could not check password.`
+        );
+        let encUserPass = promiseResult.password;
+    let hashUserPass = decryptStringFull(encUserPass);
+    let compareResult = bcrypt.compareSync(password, hashUserPass);
+    return compareResult;
 }
 
-function changePassword(id, newPassword) {
-    //TODO: Create changePassword
+async function changePassword(id, newPassword) {
+    if (isEmpty(id)) throw Error("ID is required but was not provided.");
+    if (isEmpty(newPassword))
+        throw Error("newPassword is required but was not provided.");
+    
+    let hashedPassword = hashString(newPassword);
+    let encPassword = encryptStringFull(hashedPassword);
+    prepClient();
+    let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
+        { _id: id },
+        { $set: { password: encPassword } }
+    );
+    promiseResult = await updatePromise;
+    if (!promiseResult)
+        throw Error(
+            `User with ID '${id}' does not exist. Could not change password.`
+        );
+}
+
+function getSessionToken(email, password) {
+    //TODO: Create getSessionToken
+}
+
+function checkSessionToken(token) {
+    //TODO: Create checkSessionToken
 }
 
 module.exports = {
