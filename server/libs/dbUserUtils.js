@@ -1,12 +1,14 @@
 let dbconnect = require("./dbconnect");
 let bcrypt = require("bcrypt");
 let crypto = require("crypto");
+const { create } = require("domain");
 const { isArray } = require("util");
 
 // Constants
 const dbName = "Users";
 const userDataCollection = "UserData";
 const idPrefix = "AH-";
+const idRegex = /[_]?id/i;
 
 let env;
 try {
@@ -264,20 +266,23 @@ function checkUserReqFields(userObject) {
  * @throws Various `Error`s when fields are missing or invalid.
  */
 function createUser(userObject) {
-    if ("id" in userObject)
+    // If "(_)id" key is anywhere in the userObject
+    if (Object.keys(userObject).find((key) => key.match(idRegex)))
         throw Error(
             "ID should not be included in new user data; it is generated automatically."
         );
 
     checkUserReqFields(userObject);
 
-    genID = generateID(
-        userObject.firstName +
-            userObject.lastName +
-            userObject.dob.toString() +
-            userObject.email
-    );
-    //TODO: Add ID to user
+    genID =
+        idPrefix +
+        generateID(
+            userObject.firstName +
+                userObject.lastName +
+                userObject.dob.toString() +
+                userObject.email
+        );
+    userObject["_id"] = genID;
 
     console.log("Inserting into DB...");
     prepClient();
@@ -289,19 +294,18 @@ function createUser(userObject) {
 /**
  *
  * @param {string} identifier
- * @param {"id"|"email"} identifierForm
+ * @param {"_id"|"email"} identifierForm
  * @returns
  */
-async function getUserWhole(identifier, identifierForm = "id") {
+async function getUserWhole(identifier, identifierForm = "_id") {
     if (isEmpty(identifier)) throw Error("No ID provided to get user with.");
-    let validIDForms = ["id", "email"];
+    let validIDForms = ["_id", "email"];
     if (!validIDForms.includes(identifierForm))
         throw Error(
             `Invalid identifier form (should be one of: ${validIDForms})`
         );
     prepClient();
     let filter = { [identifierForm]: identifier };
-    console.log(filter);
     let findPromise = getCollection(userDataCollection).findOne(filter);
     findPromise.finally(() => dbconnect.closeClient());
     return await findPromise;
@@ -313,17 +317,15 @@ async function getUserWhole(identifier, identifierForm = "id") {
  * @returns
  */
 async function updateUserWhole(userObject) {
-    if (isEmpty(userObject["id"]))
+    if (isEmpty(userObject["_id"]))
         throw Error(
             "No ID found in userObject; one should be included to update user. " +
                 "If this is a new user, use createUser() ."
         );
     checkUserReqFields(userObject);
     prepClient();
-    // Removes auto-generated _ID, one will be recreated for the new document
-    delete userObject["_id"];
     let updatePromise = getCollection(userDataCollection).findOneAndReplace(
-        { id: userObject.id },
+        { _id: userObject.id },
         userObject
     );
     updatePromise.finally(() => dbconnect.closeClient());
@@ -336,7 +338,7 @@ async function updateUserWhole(userObject) {
 }
 
 /**
- * Adds (or replaces) a piece of data to user, including custom data.
+ * Adds (or replaces) a piece of user data, including custom data.
  * @param {string} id The ID of the user to update the data on.
  * @param {string} fieldName The name of the field to update the value for.
  * @param {Array|object} data The value (or array of values) to be added (or replaced with).
@@ -367,8 +369,7 @@ async function addUserData(
             "Parameters intoArray and replace cannot both be false simultaneously " +
                 "(no way to not replace a singular value)."
         );
-    if (fieldName.match(/[_]?id/i))
-        throw Error("Field 'ID' cannot be changed.");
+    if (fieldName.match(idRegex)) throw Error("Field 'ID' cannot be changed.");
     if (fieldName.localeCompare("password"))
         throw Error(
             "Field 'password' cannot be changed this way. " +
@@ -386,7 +387,7 @@ async function addUserData(
 
     prepClient();
     let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
-        { id: id },
+        { _id: id },
         updateFilter
     );
     let promiseResult;
@@ -399,7 +400,7 @@ async function addUserData(
             "Existing data is not already in array structure, converting..."
         );
         let convertUpdatePromise = getCollection(userDataCollection) // ↓ Uses $set (aggregation) to use existing value (updateFilter is in [ ])
-            .findOneAndUpdate({ id: id }, [
+            .findOneAndUpdate({ _id: id }, [
                 { $set: { [fieldName]: [`$${fieldName}`].concat(data) } },
             ]);
         promiseResult = await convertUpdatePromise;
@@ -416,14 +417,12 @@ async function removeUserData(id, fieldName) {
     if (isEmpty(id)) throw Error("ID is required but was not provided.");
     if (isEmpty(fieldName))
         throw Error("fieldName is required but was not provided.");
-    if (fieldName.match(/[_]?id/i))
-        throw Error("Field 'ID' cannot be removed.");
-    if (fieldName in requiredFields)
+    if (fieldName.match(idRegex) || fieldName in requiredFields)
         throw Error(`Field '${fieldName}' is required and cannot be removed.`);
 
     prepClient();
     let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
-        { id: id },
+        { _id: id },
         { $unset: { [fieldName]: "" } }
     );
 
@@ -438,7 +437,7 @@ async function removeUserData(id, fieldName) {
 async function destroyUser(id) {
     prepClient();
     let destroyPromise = getCollection(userDataCollection).findOneAndDelete({
-        id: id,
+        _id: id,
     });
     destroyPromise.finally(() => dbconnect.closeClient());
     let promiseResult = await destroyPromise;
