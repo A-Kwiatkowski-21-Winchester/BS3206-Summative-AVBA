@@ -439,7 +439,7 @@ async function addUserData(
  * @param {string|string[]} fieldNames Which field(s) to retrieve the value(s) for.
  * @param {"_id"|"email"} identifierForm What the identifier parameter represents (default `"_id"`).
  * `"_id"` is recommended, as it is guaranteed to be unique. If `"email"` is used, it will return the first match.
- * @returns A Promise which will resolve an object containing the requested value(s). If the resolved value is `null`,
+ * @returns A Promise which will resolve to an object containing the requested value(s). If the resolved value is `null`,
  * either the identifier matched no users, or the field did not exist.
  */
 async function getUserData(identifier, fieldNames, identifierForm = "_id") {
@@ -654,23 +654,42 @@ async function checkSessionToken(token) {
     let getPromise = getCollection(userTokenCollection).findOne({ _id: token });
     getPromise.finally(() => dbconnect.closeClient());
     let promiseResult = await getPromise;
-    if (!promiseResult)
-        throw Error(`Token '${token}' does not exist. Could not verify.`);
+    //Non-existent token is the same as an expired token.
+    if (!promiseResult) return false;
 
     let tokenExpiry = promiseResult.expiry;
-    console.log(
-        "Expires:",
-        isValidDate(tokenExpiry) ? "Date:" : "?:",
-        tokenExpiry
-    );
-    // If expiry is before now (i.e. expired)
+
+    // If expiry is before now (i.e. expired) - invalid
     if (tokenExpiry <= new Date()) return false;
     // Otherwise, token is valid
     return true;
 }
 
+/**
+ * Forcibly expires (i.e. deletes) a session token on the database.
+ * @param {string} token
+ */
 function expireToken(token) {
     //TODO: Create expireToken
+    if (isEmpty(token)) throw Error("Token is required but was not provided.");
+
+    prepClient();
+    let deletePromise = getCollection(userTokenCollection).findOneAndDelete({
+        _id: token,
+    });
+    let trunc_token = token.slice(0, 7)
+    deletePromise.then((result) => {
+        if (!result)
+            console.error(
+                `Token '${trunc_token}(...)' could not be found. Unable to expire.`
+            );
+        else console.log(`Token '${trunc_token}(...)' expired successfully.`);
+    });
+    deletePromise.catch((error) => {
+        console.error(`Error: token '${trunc_token}(...)' may not have been deleted.`);
+        throw error;
+    });
+    deletePromise.finally(() => dbconnect.closeClient());
 }
 
 module.exports = {
