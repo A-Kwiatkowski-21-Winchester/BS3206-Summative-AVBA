@@ -7,5 +7,11 @@
         "AVBA",
         "dbconnect"
     ],
+    "eslint.workingDirectories": [
+        "./client",
+        "./server"
+    ],
+    "eslint.experimental.useFlatConfig": true,
+    "javascript.validate.enable": false
 }
   
