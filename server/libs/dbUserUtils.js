@@ -1,8 +1,10 @@
-let dbconnect = require("./dbconnect");
-let bcrypt = require("bcrypt");
-let crypto = require("crypto");
-const { create } = require("domain");
-const { isArray } = require("util");
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+
+// Lib imports
+const dbconnect = require("./dbconnect");
+const security = require("./security");
+const { isEmpty, isValidDate, isSemEqual } = require("./commonUtils");
 
 // Constants
 const dbName = "Users";
@@ -10,15 +12,6 @@ const userDataCollection = "UserData";
 const userTokenCollection = "UserTokens";
 const idPrefix = "AH-";
 const idRegex = /[_]?id/i;
-
-let env;
-try {
-    env = require("../env/environment");
-} catch {
-    throw Error(
-        "Unable to load './env/environment.js'. Have you filled out a copy of the template and renamed it?"
-    );
-}
 
 //#region Internal tools
 
@@ -32,41 +25,6 @@ function prepClient() {
 function getCollection(name) {
     let collection = dbconnect.globals.client.db(dbName).collection(name);
     return collection;
-}
-
-/**
- * @param {Date} date The date object to test
- * @returns `true` or `false`, depending if the date is valid or not
- */
-function isValidDate(date) {
-    return (
-        date && // Is value truthy
-        Object.prototype.toString.call(date) === "[object Date]" && // Is the object a Date
-        !isNaN(date) // Is the date valid
-    );
-}
-/**
- * Tests if a string is undefined or empty.
- * @param {string} string String to test.
- * @returns {boolean} Whether the string is empty or not.
- */
-function isEmpty(string) {
-    return string == undefined || string === "";
-}
-
-/**
- * Compares strings to determine if they are semantically (case insensitively) equal.
- * @param {string} string1 The first string to compare.
- * @param {string} string2 The second string to compare.
- * @param {boolean} trim *(optional)* Whether to trim whitespace from the strings before comparison (default `true`).
- * @returns
- */
-function isSemEqual(string1, string2, trim = true) {
-    if (trim) [string1, string2] = [string1.trim(), string2.trim()];
-    let semEqual =
-        string1.localeCompare(string2, undefined, { sensitivity: "accent" }) ===
-        0;
-    return semEqual;
 }
 
 /**
@@ -86,110 +44,6 @@ function generateID(comboString, truncation = 9, numeric = true) {
     return shortInt;
 }
 
-/** The work factor for the bcrypt hash (for regular user). */
-const hashWorkFactor = 12;
-
-/**
- * Hashes a string using bcrypt.
- * @param {string} string The plaintext string to be hashed.
- * @param {boolean} superuser *(optional)* Whether to use "superuser"-level work factor for hashing. Default is `false`.
- * @returns A bcrypt hash in the format '`$<ver>$<rounds>$<saltVal(22)><hashVal>`'. Store this all together.
- */
-function hashString(string, superuser = false) {
-    let saltRounds = hashWorkFactor;
-    if (superuser) saltRounds += 2; // Would increase 250ms of work time to 1s (*4)
-    let startTime = new Date();
-    let hashString = bcrypt.hashSync(string, saltRounds);
-    let endTime = new Date();
-    console.log(`Hashing took ${endTime - startTime}ms`);
-    return hashString;
-}
-
-/**
- * Represents a CipherObject, which contains the elements created after encryption.
- * @typedef {object} CipherObject
- * @property {string} ciphertext An encrypted string
- * @property {string} iv The initialization vector (iv) used for the encryption
- * @property {string} tag The authorization tag used for verification when decrypting
- */
-
-/**
- * Encrypts a string using AES-256(-GCM), using the secret key configured in `environment.js`.
- * @param {string} plaintext The string to be encrypted.
- * @returns {CipherObject} An object containing: `ciphertext`, `iv`, and `tag`.
- * For a precombined string, use `encryptStringFull()`.
- */
-function encryptString(plaintext) {
-    if (!env.secretKey)
-        throw Error("'secretKey' not configured in environment.js .");
-    if (isEmpty(plaintext)) throw Error("Cannot encrypt empty plaintext.");
-    let keyBytes = Buffer.from(env.secretKey, "base64");
-    let iv = crypto.randomBytes(16).toString("base64");
-    let cipherer = crypto.createCipheriv("aes-256-gcm", keyBytes, iv);
-    let ciphertext = cipherer.update(plaintext, "utf-8", "base64"); // Add string to be encrypted
-    ciphertext += cipherer.final("base64"); // Finalize the encryption
-    let tag = cipherer.getAuthTag().toString("base64");
-    return { ciphertext, iv, tag };
-}
-
-/**
- * Encrypts a string using AES-256(-GCM), using the secret key configured in `environment.js`.
- * @param {string} plaintext The string to be encrypted.
- * @returns {string} A precombined string in the format: '`<ciphertext>;<iv>;<tag>`'.
- * For a separated object, use `encryptString()`.
- */
-function encryptStringFull(plaintext) {
-    let cipherObject = encryptString(plaintext);
-    fullCipherString = Object.values(cipherObject).join(";");
-    return fullCipherString;
-}
-
-/**
- * Decrypts a string using AES-256(-GCM), using the secret key configured in `environment.js`.
- * Accepts the ciphertext, iv, and tag separately. For a precombined string, use `decryptStringFull()`.
- * @param {string} ciphertext The encrypted string
- * @param {string} iv The initialization vector (iv) used for the original encryption
- * @param {string} tag The authentication tag generated with the original encryption
- * @returns {string} The original plaintext
- */
-function decryptString(ciphertext, iv, tag) {
-    if (!env.secretKey)
-        throw Error("'secretKey' not configured in environment.js");
-    if (isEmpty(ciphertext)) throw Error("Cannot decrypt empty ciphertext.");
-    if (isEmpty(iv))
-        throw Error("Cannot decrypt with empty initialization vector (iv).");
-    if (isEmpty(tag))
-        throw Error("Cannot decrypt with empty authentication tag.");
-    let keyBytes = Buffer.from(env.secretKey, "base64");
-    let decipherer = crypto.createDecipheriv("aes-256-gcm", keyBytes, iv);
-    decipherer.setAuthTag(Buffer.from(tag, "base64"));
-    let plaintext = decipherer.update(ciphertext, "base64", "utf-8"); // Add string to be decrypted
-    plaintext += decipherer.final("utf-8"); // Finalize the decryption
-    return plaintext;
-}
-
-/**
- * Decrypts a string using AES-256(-GCM), using the secret key configured in `environment.js`.
- * Accepts a precombined string. For individual elements, use `decryptString()`.
- * @param {string} fullCiphertext The precombined cipher string in the format: '`<ciphertext>;<iv>;<tag>`'.
- * @returns {string} The original plaintext
- */
-function decryptStringFull(fullCiphertext) {
-    let cipherPieces = fullCiphertext.split(";");
-    if (cipherPieces.length != 3) {
-        throw Error(
-            "Invalid fullCiphertext. Should be in the format: " +
-                "'<ciphertext>;<iv>;<tag>'"
-        );
-    }
-    let plaintext = decryptString(
-        cipherPieces[0] /*ciphertext*/,
-        cipherPieces[1] /*iv*/,
-        cipherPieces[2] /*tag*/
-    );
-    return plaintext;
-}
-
 /**
  * Bcrypt hashes and encrypts a password using environment secret key.
  * @param {string} password The password to secure. Preferably simply hashed already but will accept plaintext.
@@ -198,12 +52,12 @@ function decryptStringFull(fullCiphertext) {
  * @returns {string|CipherObject} A precomibined cipherstring, or a CipherObject containing the encrypted pieces
  */
 function securePassword(password, superuser = false, cipherAsString = true) {
-    let bcryptHashedPassword = hashString(password, superuser);
+    let bcryptHashedPassword = security.hashString(password, superuser);
     if (cipherAsString) {
-        let cipherString = encryptStringFull(bcryptHashedPassword);
+        let cipherString = security.encryptStringFull(bcryptHashedPassword);
         return cipherString;
     }
-    let cipherObj = encryptString(bcryptHashedPassword);
+    let cipherObj = security.encryptString(bcryptHashedPassword);
     return cipherObj;
 }
 
@@ -223,27 +77,12 @@ const requiredFields = {
     isAdmin: ["boolean"],
 };
 
-//#endregion
-
 /**
- * Enum for user sex
- * @readonly
- * @enum {number}
+ * Checks a UserObject's fields to ensure it:
+ * - Has all the required fields, and
+ * - Fields like `sex` and `dob` follow the correct format
+ * @param {object} userObject
  */
-const sex = Object.freeze({
-    MALE: 0,
-    FEMALE: 1,
-    OTHER: 2,
-});
-
-/**
- * @returns A stringified list of the required fields needed to create a new user.
- * @see {@linkcode createUser}
- */
-function listRequiredFields() {
-    return JSON.stringify(requiredFields);
-}
-
 function checkUserReqFields(userObject) {
     for (const field of Object.keys(requiredFields)) {
         // If field does not exist
@@ -265,6 +104,27 @@ function checkUserReqFields(userObject) {
 
     if (!isValidDate(userObject["dob"]))
         throw Error(`Date for 'dob' is invalid.`);
+}
+
+//#endregion
+
+/**
+ * Enum for user sex
+ * @readonly
+ * @enum {number}
+ */
+const sex = Object.freeze({
+    MALE: 0,
+    FEMALE: 1,
+    OTHER: 2,
+});
+
+/**
+ * @returns A stringified list of the required fields needed to create a new user.
+ * @see {@linkcode createUser}
+ */
+function listRequiredFields() {
+    return JSON.stringify(requiredFields);
 }
 
 /**
@@ -328,7 +188,7 @@ async function getUserWhole(identifier, identifierForm = "_id") {
     return await findPromise;
 }
 
-/**
+/** //TODO: Write documentation for updateUserWhole()
  * NOTE: NOT RECOMMENDED.
  * @param {*} userObject
  * @returns
@@ -546,7 +406,7 @@ async function checkPassword(id, password) {
     let compareResult;
     try {
         let encUserPass = promiseResult.password;
-        let hashUserPass = decryptStringFull(encUserPass);
+        let hashUserPass = security.decryptStringFull(encUserPass);
         compareResult = bcrypt.compareSync(password, hashUserPass);
     } catch (error) {
         console.error("Password check: ", error.message);
@@ -568,8 +428,8 @@ async function changePassword(id, newPassword) {
     if (isEmpty(newPassword))
         throw Error("newPassword is required but was not provided.");
 
-    let hashedPassword = hashString(newPassword);
-    let encPassword = encryptStringFull(hashedPassword);
+    let hashedPassword = security.hashString(newPassword);
+    let encPassword = securePassword(newPassword);
     prepClient();
     let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
         { _id: id },
@@ -677,7 +537,7 @@ function expireToken(token) {
     let deletePromise = getCollection(userTokenCollection).findOneAndDelete({
         _id: token,
     });
-    let trunc_token = token.slice(0, 7)
+    let trunc_token = token.slice(0, 7);
     deletePromise.then((result) => {
         if (!result)
             console.error(
@@ -686,7 +546,9 @@ function expireToken(token) {
         else console.log(`Token '${trunc_token}(...)' expired successfully.`);
     });
     deletePromise.catch((error) => {
-        console.error(`Error: token '${trunc_token}(...)' may not have been deleted.`);
+        console.error(
+            `Error: token '${trunc_token}(...)' may not have been deleted.`
+        );
         throw error;
     });
     deletePromise.finally(() => dbconnect.closeClient());
@@ -694,14 +556,17 @@ function expireToken(token) {
 
 module.exports = {
     sex,
-    hashString,
-    encryptString,
-    encryptStringFull,
-    decryptString,
-    decryptStringFull,
     listRequiredFields,
     createUser,
     getUserWhole,
     updateUserWhole,
+    addUserData,
+    getUserData,
+    removeUserData,
     destroyUser,
+    checkPassword,
+    changePassword,
+    createSessionToken,
+    checkSessionToken,
+    expireToken,
 };
