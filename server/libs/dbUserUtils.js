@@ -580,7 +580,7 @@ async function changePassword(id, newPassword) {
         throw Error(
             `User with ID '${id}' does not exist. Could not change password.`
         );
-    console.log(`Password successfully changed for user '${id}'`)
+    console.log(`Password successfully changed for user '${id}'`);
 }
 
 /**
@@ -638,13 +638,35 @@ async function createSessionToken(
     insertPromise.finally(() => dbconnect.closeClient());
     let promiseResult = await insertPromise;
     if (!promiseResult) throw Error("Unknown failure. Token not generated.");
-    console.log(`Token generated for user '${identifier}'.`)
+    console.log(`Token generated for user '${identifier}'.`);
     return genToken;
 }
 
+/**
+ * Verifies if a session token exists, and if it is in-date.
+ * @param {string} token The token to verify
+ * @returns A Promise which resolves to `true` if the token is valid.
+ */
+async function checkSessionToken(token) {
+    if (isEmpty(token)) throw Error("Token is required but was not provided.");
 
-function checkSessionToken(token) {
-    //TODO: Create checkSessionToken
+    prepClient();
+    let getPromise = getCollection(userTokenCollection).findOne({ _id: token });
+    getPromise.finally(() => dbconnect.closeClient());
+    let promiseResult = await getPromise;
+    if (!promiseResult)
+        throw Error(`Token '${token}' does not exist. Could not verify.`);
+
+    let tokenExpiry = promiseResult.expiry;
+    console.log(
+        "Expires:",
+        isValidDate(tokenExpiry) ? "Date:" : "?:",
+        tokenExpiry
+    );
+    // If expiry is before now (i.e. expired)
+    if (tokenExpiry <= new Date()) return false;
+    // Otherwise, token is valid
+    return true;
 }
 
 function expireToken(token) {
