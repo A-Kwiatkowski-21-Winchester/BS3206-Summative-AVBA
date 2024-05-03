@@ -7,6 +7,7 @@ const { isArray } = require("util");
 // Constants
 const dbName = "Users";
 const userDataCollection = "UserData";
+const userTokenCollection = "UserTokens";
 const idPrefix = "AH-";
 const idRegex = /[_]?id/i;
 
@@ -21,14 +22,13 @@ try {
 
 //#region Internal tools
 
-/**
- * Generates and opens a dbconnect client.
- */
+/** Generates and opens a dbconnect client. */
 function prepClient() {
     dbconnect.generateClient();
     dbconnect.openClient();
 }
 
+/** Gets a specific database collection. */
 function getCollection(name) {
     let collection = dbconnect.globals.client.db(dbName).collection(name);
     return collection;
@@ -282,7 +282,8 @@ function createUser(userObject) {
     // If "(_)id" key is anywhere in the userObject
     if (Object.keys(userObject).find((key) => key.match(idRegex)))
         throw Error(
-            "ID should not be included in new user data; it is generated automatically."
+            "ID should not be included in new user data; it is generated automatically. " +
+                "If this is an existing user, use updateUserWhole()."
         );
 
     checkUserReqFields(userObject);
@@ -293,7 +294,8 @@ function createUser(userObject) {
             userObject.firstName +
                 userObject.lastName +
                 userObject.dob.toString() +
-                userObject.email
+                userObject.email +
+                "-AVBA"
         );
     userObject["_id"] = genID;
 
@@ -334,7 +336,7 @@ async function getUserWhole(identifier, identifierForm = "_id") {
 async function updateUserWhole(userObject) {
     if (isEmpty(userObject["_id"]))
         throw Error(
-            "No ID found in userObject; one should be included to update user. " +
+            "No '_id' found in userObject; one should be included to update user. " +
                 "If this is a new user, use createUser() ."
         );
     checkUserReqFields(userObject);
@@ -441,6 +443,11 @@ async function addUserData(
  * either the identifier matched no users, or the field did not exist.
  */
 async function getUserData(identifier, fieldNames, identifierForm = "_id") {
+    let validIDForms = ["_id", "email"];
+    if (!validIDForms.includes(identifierForm))
+        throw Error(
+            `Invalid identifier form (should be one of: ${validIDForms})`
+        );
     if (!Array.isArray(fieldNames)) fieldNames = [fieldNames]; // If not array, convert to array
     let projectionObj = {
         _id: 0,
@@ -505,6 +512,13 @@ async function destroyUser(id) {
     console.log(`Destroyed user with id '${id}'.`);
 }
 
+/**
+ * Checks a password value against the encrypted value stored in the database.
+ * @param {string} id The ID of the user whose password to check against.
+ * @param {string} password The password to check against the one stored in the database.
+ * Preferably already SHA-256 hashed by the client.
+ * @returns A Promise which resolves to `true` if the password matches.
+ */
 async function checkPassword(id, password) {
     if (isEmpty(id)) throw Error("ID is required but was not provided.");
     if (isEmpty(password))
@@ -528,17 +542,32 @@ async function checkPassword(id, password) {
         throw Error(
             `User with ID '${id}' does not exist. Could not check password.`
         );
+
+    let compareResult;
+    try {
         let encUserPass = promiseResult.password;
-    let hashUserPass = decryptStringFull(encUserPass);
-    let compareResult = bcrypt.compareSync(password, hashUserPass);
+        let hashUserPass = decryptStringFull(encUserPass);
+        compareResult = bcrypt.compareSync(password, hashUserPass);
+    } catch (error) {
+        console.error("Password check: ", error.message);
+        throw Error(
+            "There is a problem with the currently set user password. " +
+                "Use changePassword() to set this user's password again."
+        );
+    }
     return compareResult;
 }
 
+/**
+ * Changes the password of a user, encrypting it before storage.
+ * @param {string} id The ID of the user whose password to change.
+ * @param {string} newPassword The new password for the user. Preferably already SHA-256 hashed by the client.
+ */
 async function changePassword(id, newPassword) {
     if (isEmpty(id)) throw Error("ID is required but was not provided.");
     if (isEmpty(newPassword))
         throw Error("newPassword is required but was not provided.");
-    
+
     let hashedPassword = hashString(newPassword);
     let encPassword = encryptStringFull(hashedPassword);
     prepClient();
@@ -551,14 +580,75 @@ async function changePassword(id, newPassword) {
         throw Error(
             `User with ID '${id}' does not exist. Could not change password.`
         );
+    console.log(`Password successfully changed for user '${id}'`)
 }
 
-function getSessionToken(email, password) {
-    //TODO: Create getSessionToken
+/**
+ * Creates a session token that can be stored in the browser to maintain a logged in session.
+ * @param {string} identifier An identifier for the user, typically the email.
+ * @param {string} password The password for the specified user (preferably already SHA-256 hashed). Is checked before token is generated.
+ * @param {"email"|"_id"} identifierForm What the identifier parameter represents (default `"email"`).
+ * @param {number} expiresInHours How many hours until the token expires. Default is `1`.
+ * @returns A Promise that resolves to the generated token string.
+ */
+async function createSessionToken(
+    identifier,
+    password,
+    identifierForm = "email",
+    expiresInHours = 1
+) {
+    let validIDForms = ["_id", "email"];
+    if (!validIDForms.includes(identifierForm))
+        throw Error(
+            `Invalid identifier form (should be one of: ${validIDForms})`
+        );
+    if (identifierForm == "email") {
+        let id = await getUserData(identifier, "_id", identifierForm);
+        if (!id)
+            throw Error(
+                `User could not be found for email '${identifier}'. Unable to create token.`
+            );
+        identifier = id._id;
+    }
+
+    let passCheck = await checkPassword(identifier, password).catch((error) => {
+        console.error("Could not generate token.");
+        throw error;
+    });
+    if (!passCheck)
+        throw Error(
+            `Password did not match for user with identifier '${identifier}'. Unable to create token.`
+        );
+
+    let preToken = identifier + new Date().toString();
+    let genToken = crypto.createHash("sha-256").update(preToken).digest("hex");
+    //                    hrs        min  sec   ms
+    let hoursInMs = expiresInHours * 60 * 60 * 1000;
+    let expiryTime = new Date(Date.now() + hoursInMs);
+
+    let tokenObject = {
+        _id: genToken,
+        userID: identifier,
+        expiry: expiryTime,
+    };
+
+    prepClient();
+    let insertPromise =
+        getCollection(userTokenCollection).insertOne(tokenObject);
+    insertPromise.finally(() => dbconnect.closeClient());
+    let promiseResult = await insertPromise;
+    if (!promiseResult) throw Error("Unknown failure. Token not generated.");
+    console.log(`Token generated for user '${identifier}'.`)
+    return genToken;
 }
+
 
 function checkSessionToken(token) {
     //TODO: Create checkSessionToken
+}
+
+function expireToken(token) {
+    //TODO: Create expireToken
 }
 
 module.exports = {
