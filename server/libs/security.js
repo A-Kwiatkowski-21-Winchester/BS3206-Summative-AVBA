@@ -68,7 +68,7 @@ function encryptString(plaintext) {
  */
 function encryptStringFull(plaintext) {
     let cipherObject = encryptString(plaintext);
-    fullCipherString = Object.values(cipherObject).join(";");
+    let fullCipherString = Object.values(cipherObject).join(";");
     return fullCipherString;
 }
 

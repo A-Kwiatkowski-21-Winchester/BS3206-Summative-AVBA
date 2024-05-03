@@ -62,6 +62,32 @@ function securePassword(password, superuser = false, cipherAsString = true) {
 }
 
 /**
+ * Gets the stored (encrypted) password value for a user.
+ * @param {string} id The ID of the user to fetch the password for.
+ * @returns {Promise<string|null>} The password as a string (though not as plaintext).
+ */
+async function getPassword(id) {
+    if (isEmpty(id)) throw Error("No ID provided to get user with.");
+    prepClient();
+    let getPromise = getCollection(userDataCollection).findOne(
+        { _id: id },
+        {
+            projection: {
+                _id: 0,
+                password: 1,
+            },
+        }
+    );
+    getPromise.finally(() => dbconnect.closeClient());
+    let promiseResult = await getPromise;
+    if (!promiseResult)
+        throw Error(
+            `User with ID '${id}' does not exist. Could not get password.`
+        );
+    return promiseResult.password;
+}
+
+/**
  * Contains the required fields for the creation of a new user.
  * Format: `<field>: [<type>, <hint>]`
  */
@@ -121,7 +147,7 @@ const sex = Object.freeze({
 
 /**
  * @returns A stringified list of the required fields needed to create a new user.
- * @see {@linkcode createUser}
+ * @see {@linkcode createUser()}
  */
 function listRequiredFields() {
     return JSON.stringify(requiredFields);
@@ -130,8 +156,11 @@ function listRequiredFields() {
 /**
  * Creates a new user on the database.
  * @param {object} userObject A dictionary containing the values to insert for the new user.
+ * The `password` value should be hashed client-side before being passed to the server;
+ * it will be re-hashed and encrypted before storage.
  * To see the minimum required fields and their types, run:
  * ```javascript
+ * // Import dbUserUtils, then:
  * console.log(dbUserUtils.listRequiredFields())
  * ```
  * or see {@link requiredFields}.
@@ -148,7 +177,7 @@ function createUser(userObject) {
 
     checkUserReqFields(userObject);
 
-    genID =
+    let genID =
         idPrefix +
         generateID(
             userObject.firstName +
@@ -159,7 +188,7 @@ function createUser(userObject) {
         );
     userObject["_id"] = genID;
 
-    //FIXME: Encrypt password before passing into DB
+    userObject.password = securePassword(userObject.password);
 
     console.log("Inserting into DB...");
     prepClient();
@@ -188,10 +217,11 @@ async function getUserWhole(identifier, identifierForm = "_id") {
     return await findPromise;
 }
 
-/** //TODO: Write documentation for updateUserWhole()
- * NOTE: NOT RECOMMENDED.
- * @param {*} userObject
- * @returns
+/**
+ * **Not Recommended**  
+ * Updates an entire user, replacing the database copy with the one provided.  
+ * The `password` property will not replaced and the database value will remain - use {@linkcode changePassword()} to change passwords.
+ * @param {object} userObject The userObject to replace the user with in the database. Must contain required fields.
  */
 async function updateUserWhole(userObject) {
     if (isEmpty(userObject["_id"]))
@@ -200,8 +230,11 @@ async function updateUserWhole(userObject) {
                 "If this is a new user, use createUser() ."
         );
     checkUserReqFields(userObject);
+
+    let userPassword = await getPassword(userObject._id);
+    userObject.password = userPassword; // Replaces any manually set password with one from the database.
+
     prepClient();
-    //FIXME: make sure to discard any changes to password and replace with database one
     let updatePromise = getCollection(userDataCollection).findOneAndReplace(
         { _id: userObject.id },
         userObject
@@ -212,7 +245,6 @@ async function updateUserWhole(userObject) {
         throw Error(
             `User with ID '${userObject.id}' does not exist. Could not update.`
         );
-    return true;
 }
 
 /**
@@ -273,7 +305,7 @@ async function addUserData(
         promiseResult = await updatePromise;
     } catch (error) {
         // If not an array error, re-throw it
-        if (!error.message.includes("must be an array")) throw err;
+        if (!error.message.includes("must be an array")) throw error;
         console.log(
             "Existing data is not already in array structure, converting..."
         );
@@ -387,25 +419,10 @@ async function checkPassword(id, password) {
         );
 
     prepClient();
-    let getPromise = getCollection(userDataCollection).findOne(
-        { _id: id },
-        {
-            projection: {
-                _id: 0,
-                password: 1,
-            },
-        }
-    );
-    getPromise.finally(() => dbconnect.closeClient());
-    let promiseResult = await getPromise;
-    if (!promiseResult)
-        throw Error(
-            `User with ID '${id}' does not exist. Could not check password.`
-        );
 
     let compareResult;
     try {
-        let encUserPass = promiseResult.password;
+        let encUserPass = await getPassword(id);
         let hashUserPass = security.decryptStringFull(encUserPass);
         compareResult = bcrypt.compareSync(password, hashUserPass);
     } catch (error) {
@@ -418,6 +435,7 @@ async function checkPassword(id, password) {
     return compareResult;
 }
 
+
 /**
  * Changes the password of a user, encrypting it before storage.
  * @param {string} id The ID of the user whose password to change.
@@ -428,14 +446,13 @@ async function changePassword(id, newPassword) {
     if (isEmpty(newPassword))
         throw Error("newPassword is required but was not provided.");
 
-    let hashedPassword = security.hashString(newPassword);
     let encPassword = securePassword(newPassword);
     prepClient();
     let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
         { _id: id },
         { $set: { password: encPassword } }
     );
-    promiseResult = await updatePromise;
+    let promiseResult = await updatePromise;
     if (!promiseResult)
         throw Error(
             `User with ID '${id}' does not exist. Could not change password.`
@@ -530,7 +547,6 @@ async function checkSessionToken(token) {
  * @param {string} token
  */
 function expireToken(token) {
-    //TODO: Create expireToken
     if (isEmpty(token)) throw Error("Token is required but was not provided.");
 
     prepClient();
