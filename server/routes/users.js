@@ -1,5 +1,5 @@
 const express = require('express');
-const dbconnect = require('../dbconnect');
+const dbUserUtils = require('../libs/dbUserUtils');
 const router = express.Router();
 
 
@@ -20,6 +20,12 @@ const router = express.Router();
     .finally(() => dbconnect.closeClient())
  
 }); */
+
+router.get("/", async (req, res) => {
+
+    //Create base code
+ 
+});
 
 
 
