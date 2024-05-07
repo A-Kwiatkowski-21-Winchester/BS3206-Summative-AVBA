@@ -1,3 +1,4 @@
+import { Alert } from 'bootstrap';
 import './CreateArticle.css';
 import { useState } from 'react';
 
@@ -15,7 +16,7 @@ export default function CreateArticle(){
 
 
         const articleDetails = {title, author, date, content}
-        //console.log(articleDetails)
+        
         const response = await fetch('http://localhost:8080/api/mentalhealth/create',{
             method: 'POST',
             body: JSON.stringify(articleDetails),
@@ -30,6 +31,7 @@ export default function CreateArticle(){
         }
         if (response.ok){
             console.log(json)
+            alert("Success, article created!")
         }
     }
     return(
@@ -61,7 +63,7 @@ export default function CreateArticle(){
                 value = {content}
                 required/>
 
-                <button className="btn"type="submit">Submit</button>
+                <button className="btn" type="submit">Submit</button>
                     
             </form>
         </div>

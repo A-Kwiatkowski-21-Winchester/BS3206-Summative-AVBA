@@ -2,13 +2,14 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    
 }
 
 .title{
     text-align: center;
 }
 .article{
-    /* padding: 3vw; */
+    
     display: flex;
     justify-content: center;
 }
@@ -30,7 +31,7 @@
     border:0;
     border-radius: 5px;
     font-size: 20px;
-    background-color: bisque;
+    background-color: rgb(214, 218, 247);
 }
 
 .article textarea{
@@ -42,9 +43,16 @@
     border:0;
     border-radius: 5px;
     font-size: 20px;
-    background-color: bisque;
+    background-color: rgb(214, 218, 247);
 }
 
-.btn{
-    width: 100%;
+.article .btn{
+    background-color: rgb(214, 218, 247);
+
+    width: 50%;
+    height: 8%;
+    font-size: 20px;
+    display: block;
+    margin: auto;
+    margin-top: 30px;
 }
