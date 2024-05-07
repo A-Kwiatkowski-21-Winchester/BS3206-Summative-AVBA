@@ -7,15 +7,34 @@
 }
 
 .cards {
-    width: 50%;
-    margin: auto;
-    border: 2px solid blue;
-}
-       
+
+    background-color: rgb(214, 218, 247);
+    border: 1px solid rgba(186, 101, 255, 0.8);
+    padding: 30px;
+    font-size: 20px;
+    text-align: left;
+    line-height: 35px;
+    border-radius: 20px;
+    
+}    
 .card {
-    border: 2px solid #e7e7e7; 
-    border-radius: 5px;
-    padding: 20px;
-    margin: 10px;
-    text-align: center;
+    display: grid;
+    grid-template-columns: 25% 25% 25%;
+    column-gap: 50px;
+    row-gap: 50px;
+    padding: 50px;
+}
+
+.btn{
+    font-size: 15px;
+    width: 25%;
+    height: 15%;
+    background-color: rgba(255, 255, 255, 0.979);
+    border: 1px solid rgba(186, 101, 255, 0.8);
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.btn:hover{
+    background-color: rgb(214, 218, 247);
 }

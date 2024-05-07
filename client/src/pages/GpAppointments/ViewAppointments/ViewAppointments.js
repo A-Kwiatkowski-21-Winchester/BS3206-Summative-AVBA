@@ -38,17 +38,17 @@ export default function ViewAppointments(){
     }
 
     return(
-        <div className="container">
+        <div>
             <h1>My Appointments</h1>
-            <div className="cards">
+            <div className="card">
                 {appointments.map((appointment) => (
-                    <div className="card">
+                    <div className="cards">
                         <p key={appointment._id}>Patient: {appointment.patientName}</p>
                         <p key={appointment.healthNumber}>Health No.{appointment.healthNumber}</p>
                         <p key={appointment.doctorName}>Doctor: {appointment.doctorName}</p>
                         <p key={appointment.date}>Date: {appointment.date}</p>
                         <p key={appointment.time}>Time: {appointment.time}</p>
-                        <button onClick={() => deleteAppointment(appointment._id)}>Cancel</button>
+                        <button className="btn" onClick={() => deleteAppointment(appointment._id)}>Cancel</button>
                     </div>
                 ))}
             </div>

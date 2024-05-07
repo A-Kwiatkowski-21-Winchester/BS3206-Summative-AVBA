@@ -30,6 +30,7 @@ export default function BookAppointments(){
         }
         if (response.ok){
             console.log(json)
+            alert("Success! Appointment created.")
         }
         
     }
