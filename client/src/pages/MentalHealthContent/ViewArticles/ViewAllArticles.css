@@ -1,4 +1,12 @@
+*{
+    font-family: "Poppins", sans-serif;
+}
+
+.title{
+    margin-top: 10px;
+}
 .container{
+
     display: block;
     position: absolute;
     width: 80%;
@@ -6,21 +14,31 @@
     border: 2px solid red;
 }
 
+.btn{
+    width: 25%;
+    height: 25%;
+    background-color: rgba(255, 255, 255, 0.979);
+    border: 1px solid rgba(186, 101, 255, 0.8);
+    border-radius: 10px;
+}
+
 .cards {
 
-    background-color: rgba(157, 37, 204, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.8);
+    background-color: rgba(201, 163, 216, 0.8);
+    border: 1px solid rgba(186, 101, 255, 0.8);
     padding: 20px;
     font-size: 30px;
     text-align: center;
+    border-radius: 20px;
 }
        
 .card {
     display: grid;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: 31% 31% 31%;
     column-gap: 50px;
     row-gap: 50px;
-    padding: 10px;
+    padding: 50px;
+    
 }
 
 .Articles{
