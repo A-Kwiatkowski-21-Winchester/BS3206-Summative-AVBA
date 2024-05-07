@@ -52,7 +52,7 @@ export default function ViewAllArticles(){
                     <h2>By {showSelectedArticle.author}</h2>
                     <h5>Created: {showSelectedArticle.date}</h5>
                     <p className="content">{showSelectedArticle.content}</p>
-                    <button onClick={returnToAllArticles}>Back</button>
+                    <button className ="btn" onClick={returnToAllArticles}>Back</button>
                 </div>
                
 
