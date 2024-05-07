@@ -46,3 +46,21 @@
     background-color: rgb(214, 218, 247);
 }
 
+
+
+.article .btn{
+    
+    background-color: rgba(255, 255, 255, 0.979);
+    border: 1px solid rgba(186, 101, 255, 0.8);
+    border-radius: 10px;
+    width: 35%;
+    height: 8%;
+    font-size: 20px;
+    display: block;
+    margin: auto;
+    margin-top: 30px;
+}
+.article .btn:hover{
+    background-color: rgba(255, 255, 255, 0.979);
+    background-color: rgb(199, 204, 243);
+}

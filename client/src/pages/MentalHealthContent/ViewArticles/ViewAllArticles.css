@@ -24,7 +24,7 @@
 
 .cards {
 
-    background-color: rgba(80, 131, 241, 0.8);
+    background-color: rgb(214, 218, 247);
     border: 1px solid rgba(186, 101, 255, 0.8);
     padding: 20px;
     font-size: 30px;
@@ -53,7 +53,8 @@
 }
 
 .Articles .btn{
-    background-color: rgb(214, 218, 247);
+    background-color: rgba(255, 255, 255, 0.979);
+    border: 1px solid rgba(186, 101, 255, 0.8);
     width: 20%;
     height: 10%;
     font-size: 20px;
@@ -62,6 +63,6 @@
     margin-top: 30px;
 }
 
-.Articles .btn:hover{
-    background-color: rgb(199, 204, 243);
+ .btn:hover{
+    background-color: rgb(214, 218, 247);
 }
