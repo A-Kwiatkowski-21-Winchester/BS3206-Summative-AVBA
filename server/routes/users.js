@@ -21,9 +21,12 @@ const router = express.Router();
  
 }); */
 
+// Last resort
 router.get("/", async (req, res) => {
 
     //Create base code
+    console.log("User API")
+    res.json({message:"Page!"})
  
 });
 
