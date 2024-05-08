@@ -16,7 +16,7 @@ app.use(express.json());
 //routes
 app.use('/api/users', userRoutes);
 
-// Last resort route
+// Default route
 app.use('/', function(req, res) {
   console.log("Connection")
   // res
