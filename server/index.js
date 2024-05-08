@@ -1,7 +1,6 @@
 require("dotenv").config();
 const cors = require("cors");
 const express = require("express");
-/** @type {import("express").RequestHandler} */
 
 const userRoutes = require("./routes/users");
 
@@ -12,15 +11,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use(function (req, res, next) {
+  console.log("Incoming request for:", req.path)
+  next()
+})
 
 //routes
 app.use('/api/users', userRoutes);
 
 // Default route
 app.use('/', function(req, res) {
-  console.log("Connection")
-  // res
-  res.status(404)
+  res.status(404).send("Homepage! (invalid request)")
 });
 
 app.listen(PORT, () => {

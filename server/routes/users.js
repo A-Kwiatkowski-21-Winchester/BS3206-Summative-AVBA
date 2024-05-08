@@ -2,27 +2,40 @@ const express = require("express");
 const dbUserUtils = require("../libs/dbUserUtils");
 const router = express.Router();
 
-// SAMPLE CODE FROM ABDULLAH'S APPOINTMENTS.JS
-// get all appointments
-/* router.get("/", async (_, res) => {
+/**
+ * Creates automatic functions that help handle "category" URLs, like
+ * in this file's case, `/password`, which has subpaths.
+ * @param {string} relativePath The path relative to the current router
+ * @param {string[]} subpaths A list of subpaths to report back to the requester
+ */
+function leftover(relativePath, subpaths) {
+    router.all(relativePath, function (req, res) {
+        console.log(`Reached ${relativePath}`);
+        //res.redirect(404, "/")
+        res.status(404).json({
+            error: "Invalid URL",
+            title: `Category home for ${req.baseUrl + relativePath}`,
+            available_subpaths: subpaths,
+        });
+    });
 
-    dbconnect.generateClient();
-    dbconnect.openClient();
-
-    let client = dbconnect.globals.client;
-    let db = client.db("GPData")
-    let collection = db.collection("GPAppointments")
-
-    collection.find({}).toArray()
-    .then((response) => res.status(200).json(response))
-    .catch((err) => res.status(500).json(err))
-    .finally(() => dbconnect.closeClient())
- 
-}); */
-
-function leftover() {
-    //TODO: Create function that handles /* with a list of available subpaths
+    router.all(`${relativePath}/*`, function (req, res) {
+        console.log(`Reached ${relativePath}/*`);
+        res.redirect(303, req.baseUrl + relativePath);
+    });
 }
+
+/** Simple function that returns a `405` response for an unallowed method.  
+ * Example:
+ * ```js
+ * router.all("/path", methodNotAllowed)
+ * ```
+ */
+function methodNotAllowed(req, res) {
+    res.status(405).send(`Method ${req.method} not allowed`);
+}
+
+let categoryURLs = {};
 
 router.post("/create", function (req, res) {
     console.log("Reached /create");
@@ -54,8 +67,9 @@ router.delete("/remove-data", async (req, res) => {
     //TODO: Add remove-data function
 });
 
-router.delete("/destroy", async (req, res) => {
-    console.log("Reached /destroy");
+router.delete("/destroy", async (req, res) => { //TODO: Figure out how to make compatible with /:id as well as ?id=
+    console.log(`Reached ${req.baseUrl}/destroy`);
+
     //TODO: Add destroy function
 });
 
@@ -65,49 +79,28 @@ router.get("/password/check", async (req, res) => {
 });
 
 router.put("/password/change", async (req, res) => {
-
-    console.log("Reached /password/change")
+    console.log("Reached /password/change");
     //TODO: Add password change function
-
 });
 
-router.all("/password/*", function (req, res) {
-    console.log("Reached /password");
-    console.log(req.accepts())
-    //res.redirect(404, "/")
-    res.status(404).json({available_subpaths: ["/check", "/change"]});
-    //TODO: Add password default path
-});
+categoryURLs["/password"] = ["/check", "/change"];
 
 router.get("/session/get", async (req, res) => {
-
-    console.log("Reached /session/get")
-    //TODO: Add session get function    
-
+    console.log("Reached /session/get");
+    //TODO: Add session get function
 });
 
 router.get("/session/check", async (req, res) => {
-
-    console.log("Reached /session/check")
+    console.log("Reached /session/check");
     //TODO: Add session check function
-
 });
 
 router.delete("/session/expire", async (req, res) => {
-
-    console.log("Reached /session/expire")
+    console.log("Reached /session/expire");
     //TODO: Add session expire function
-
 });
 
-
-router.all("/session/*", function (req, res) {
-
-    console.log("Reached /session/*")
-    //TODO: Add session default path
-
-});
-
+categoryURLs["/session"] = ["/get", "/check", "/expire"];
 
 // Default route
 router.get("/", async (req, res) => {
@@ -115,5 +108,15 @@ router.get("/", async (req, res) => {
     console.log("User API");
     res.json({ message: "Page!" });
 });
+
+// For all routes configured here, if any other method, return a 405 reponse
+router.stack.forEach((item) => {
+    router.all(item.route.path, methodNotAllowed);
+});
+
+// Configure categoryURLs with appropriate JSON response.
+Object.keys(categoryURLs).forEach((category) => {
+    leftover(category, categoryURLs[category])
+})
 
 module.exports = router;
