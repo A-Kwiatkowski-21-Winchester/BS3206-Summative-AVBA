@@ -1,48 +1,50 @@
 let env;
 try {
-    env = require('./env/environment');
+    env = require("../env/environment");
 } catch {
-    console.error("Unable to load './env/environment.js'. Have you filled out a copy of the template and renamed it?");
+    throw Error(
+        "Unable to load './env/environment.js'. Have you filled out a copy of the template and renamed it?"
+    );
 }
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://${env.username}:${env.password}@${env.clusterName}/?retryWrites=true&w=majority&appName=AVBA-Cluster`;
 
 /**
- * Holds the global dbconnect variables. 
+ * Holds the global dbconnect variables.
  */
 let globals = {
     /** The global client.
      * @type {MongoClient} */
-    client:null,
-    
+    client: null,
+
     /** Whether the dbconnect functions write their actions to console.
      * @type {boolean} */
-    verbose:false,
+    verbose: false,
 };
 
 /**
  * Generates a new client to communicate with the database.
  * @param {boolean} global If the generated client should be global. Defaults to `true`.
- * - If `true`, sets the global `.client` property in this module. 
+ * - If `true`, sets the global `.client` property in this module.
  * - If `false`, returns the newly generated client.
  * @param {string} customUri A custom URI to connect to. If empty, uses the default configured URI.
  */
 function generateClient(global = true, customUri = null) {
-    let uriToUse = customUri ? customUri : uri
+    let uriToUse = customUri ? customUri : uri;
     let newClient = new MongoClient(uriToUse, {
         serverApi: {
             version: ServerApiVersion.v1,
             strict: true,
             deprecationErrors: true,
-        }
+        },
     });
-    if(global) {
+    if (global) {
         globals.client = newClient;
     } else {
-        return newClient
+        return newClient;
     }
-    if(globals.verbose) { console.log("New client generated") }
+    if (globals.verbose) console.log("New client generated");
 }
 
 /**
@@ -52,41 +54,41 @@ function generateClient(global = true, customUri = null) {
  */
 function openClient(clientToOpen = null) {
     try {
-        if(clientToOpen) {
-            clientToOpen.connect()
+        if (clientToOpen) {
+            clientToOpen.connect();
         } else {
-            globals.client.connect()
+            globals.client.connect();
         }
-        if(globals.verbose) { console.log("Opening client connection...") }
+        if (globals.verbose) console.log("Opening client connection...");
     } catch {
-        console.error("Failed to open connection to client.")
+        console.error("Failed to open connection to client.");
     }
 }
 
 /**
- * Closes the designated client. Once a client is closed, it cannot be used 
+ * Closes the designated client. Once a client is closed, it cannot be used
  * again and a new one must be generated using {@linkcode generateClient()}.
  * @param {MongoClient} clientToClose The client to close. If left empty,
  * will close the global `.client` property in this module.
  */
 function closeClient(clientToClose = null) {
     try {
-        if(clientToClose) {
-            clientToClose.close()
+        if (clientToClose) {
+            clientToClose.close();
         } else {
-            globals.client.close()
+            globals.client.close();
         }
-        if(globals.verbose) { console.log("Closing client connection...") }
+        if (globals.verbose) console.log("Closing client connection...");
     } catch {
-        console.error("Failed to close connection to client.")
+        console.error("Failed to close connection to client.");
     }
 }
 
 /**
- * **[NOT YET FUNCTIONAL]** 
+ * **[NOT YET FUNCTIONAL]**
  * Has unpredictable results. Do not use.
- * 
- * Performs one database action. 
+ *
+ * Performs one database action.
  * Will automatically generate, open, and close the needed client.
  * @param {function} action Action to perform inside database transaction
  * @example
@@ -101,13 +103,13 @@ async function transaction(action) {
             // Connect the client to the server
             await tempClient.connect();
             result = await action();
-            console.log(result)
+            console.log(result);
             success = true;
         } finally {
             // Ensures that the client will close when you finish/error
             await tempClient.close();
         }
-        if (!success) { throw Error("Unsuccessful transaction.") }
+        if (!success) throw Error("Unsuccessful transaction.");
     }
 
     run().catch(console.dir);
@@ -121,18 +123,19 @@ async function transaction(action) {
  * will use the global `.client` property in this module.
  */
 async function ping(clientToUse = null) {
-    if(!clientToUse) {
-        clientToUse = globals.client // Use global client if none specified
+    if (!clientToUse) {
+        clientToUse = globals.client; // Use global client if none specified
     }
     console.log("Ping start");
     try {
-        await clientToUse.db("admin").command({ ping: 1 })
-        console.log(`Ping complete - successfully connected to ${clientToUse.options.srvHost}`)
+        await clientToUse.db("admin").command({ ping: 1 });
+        console.log(
+            `Ping complete - successfully connected to ${clientToUse.options.srvHost}`
+        );
     } catch {
         console.error(`Ping to ${clientToUse.options.srvHost} failed.`);
     }
 }
-
 
 module.exports = {
     globals,
