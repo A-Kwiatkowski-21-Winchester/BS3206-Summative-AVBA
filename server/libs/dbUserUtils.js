@@ -133,7 +133,7 @@ function checkUserReqFields(userObject) {
                 `Field '${field}' was not of required type '${requiredFields[field][0]}'` +
                 ` (was instead '${typeof userObject[field]}').`;
             if (field == "sex")
-                errorStr += ` For field '${field}', use the dbUserUtils.sex enum.`;
+                errorStr += ` For field '${field}', use the sex enum (${sex}).`;
             if (field == "dob")
                 errorStr += ` For field '${field}', use the Date class.`;
             throw new RequestError(errorStr);
@@ -184,7 +184,7 @@ function createUser(userObject) {
     if (Object.keys(userObject).find((key) => key.match(idRegex)))
         throw new RequestError(
             "ID should not be included in new user data; it is generated automatically. " +
-                "If this is an existing user, use updateUserWhole()."
+                'If this is an existing user, use the "update user whole" function.'
         );
 
     checkUserReqFields(userObject);
@@ -241,7 +241,7 @@ async function updateUserWhole(userObject) {
     if (isEmpty(userObject["_id"]))
         throw new RequestError(
             "No '_id' found in userObject; one should be included to update user. " +
-                "If this is a new user, use createUser() ."
+                'If this is a new user, use the "create user" function.'
         );
     checkUserReqFields(userObject);
 
@@ -288,7 +288,7 @@ async function addUserData(
         throw new RequestError("fieldName is required but was not provided.");
     if (isEmpty(data))
         throw new RequestError(
-            "Data is required but was not provided. To remove data, use removeUserData()"
+            'Data is required but was not provided. To remove data, use the "remove user data" function'
         );
     if (!intoArray && !replace)
         throw new RequestError(
@@ -300,7 +300,7 @@ async function addUserData(
     if (isSemEqual(fieldName, "password"))
         throw new RequestError(
             "Field 'password' cannot be changed this way. " +
-                "Use changePassword().",
+                'Use the "change password" function',
             418
         );
 
@@ -370,7 +370,7 @@ async function getUserData(identifier, fieldNames, identifierForm = "_id") {
         if (isSemEqual(fieldName, "password"))
             throw new RequestError(
                 "Field 'password' is encrypted and should not be retrieved this way. " +
-                    "To check a value against the stored password, use checkPassword().",
+                    'To check a value against the stored password, use the "check password" function.',
                 418
             );
         projectionObj[fieldName] = 1;
@@ -469,7 +469,7 @@ async function checkPassword(id, password) {
         console.error("Password check: ", error.message);
         throw new RequestError(
             "There is a problem with the currently set user password. " +
-                "Use changePassword() to set this user's password again.",
+                'Use the "change password" function to set this user\'s password again.',
             422
         );
     }

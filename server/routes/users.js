@@ -237,12 +237,26 @@ router.delete("/destroy", async (req, res) => {
 
 router.get("/password/check", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/password/check`);
-    //TODO: Add password check function
+
+    let checkError = checkReqParams(req, res, ["id", "password"]);
+    if (checkError) return checkError;
+
+    let task = dbUserUtils.checkPassword(req.query.id, req.query.password);
+    try {
+        let taskResult = await task;
+        if (!taskResult)
+            return statusReturn(res, 403, "Password check failed");
+        return statusReturn(res, 200, "Password match");
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(res, error.statusCode, undefined, error.message);
+        return statusReturn(res, 500);
+    }
 });
 
 router.put("/password/change", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/password/change`);
-    //TODO: Add password change function
 
     let checkError = checkReqParams(req, res, ["id", "newPassword"]);
     if (checkError) return checkError;
@@ -291,7 +305,6 @@ router.get("/session/check", async (req, res) => {
 
 router.delete("/session/expire", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/session/expire`);
-    //TODO: Add session expire function
 
     let checkError = checkReqParams(req, res, ["token"]);
     if (checkError) return checkError;
