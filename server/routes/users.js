@@ -50,7 +50,7 @@ const statusMessages = {
  * Returns a status code
  * @param {object} res The response object to use for the return
  * @param {int} status The status code to return
- * @param {string} message The message to return
+ * @param {string} message The message to return. Will attempt to use a default preconfigured message if blank
  * @param {string} secMessage A secondary message to return after the primary (for instance, after a default message)
  */
 function statusReturn(
@@ -82,6 +82,25 @@ function statusReturn(
             `${status} :: ${message}` +
                 `${isEmpty(secMessage) ? "" : ` - ${secMessage}`}`
         );
+}
+
+/**
+ * Checks the required parameters for a request and automatically returns a `400` status if one is empty or missing.
+ * @param {Request<{}, any, any, qs.ParsedQs, Record<string, any>>} req The request object
+ * @param {object} res The response object for the request
+ * @param {string[]} paramList A list of the required parametes that should be included
+ */
+function checkReqParams(req, res, paramList) {
+    return paramList.every((item) => {
+        if (isEmpty(req.query[item]))
+            return statusReturn(
+                res,
+                400,
+                null,
+                `Parameter '${item}' is blank or missing`
+            );
+        return false;
+    });
 }
 
 let categoryURLs = {};
@@ -120,19 +139,18 @@ router.delete("/remove-data", async (req, res) => {
 
 router.delete("/destroy", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/destroy`);
-    let id = req.query.id;
-    if (isEmpty(id)) {
-        return statusReturn(res, 400);
-    }
 
-    let task = dbUserUtils.destroyUser(id);
+    let checkError = checkReqParams(req, res, ["id"]);
+    if (checkError) return checkError;
+
+    let task = dbUserUtils.destroyUser(req.query.id);
     try {
         await task;
         return statusReturn(res, 200, "User destroyed");
     } catch (error) {
         console.error(error);
-        if (error.message.includes("does not exist"))
-            return statusReturn(res, 404, error.message);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(res, 400, "", error.message);
         return statusReturn(res, 500);
     }
 });
