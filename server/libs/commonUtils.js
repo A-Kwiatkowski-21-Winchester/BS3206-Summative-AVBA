@@ -27,6 +27,8 @@ function isEmpty(string) {
  * @returns
  */
 function isSemEqual(string1, string2, trim = true) {
+    if (string1 === string2) return true;
+    if ([string1, string2].some(val => val === undefined)) return false;
     if (trim) [string1, string2] = [string1.trim(), string2.trim()];
     let semEqual = string1.localeCompare(string2, undefined, { sensitivity: "accent" }) ===
         0;
