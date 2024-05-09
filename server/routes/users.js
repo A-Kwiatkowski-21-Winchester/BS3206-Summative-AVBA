@@ -129,7 +129,20 @@ router.put("/add-data", async (req, res) => {
 
 router.get("/get-data", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/get-data`);
-    //TODO: Add get-data function
+
+    let checkError = checkReqParams(req, res, ["id", "fieldNames"]);
+    if (checkError) return checkError;
+
+    let task = dbUserUtils.getUserData(req.query.id, req.query.fieldNames);
+    try {
+        let taskResult = await task;
+        return res.status(200).json(taskResult);
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(res, 400, "", error.message);
+        return statusReturn(res, 500);
+    }
 });
 
 router.delete("/remove-data", async (req, res) => {
@@ -184,14 +197,30 @@ router.put("/password/change", async (req, res) => {
 
 categoryURLs["/password"] = ["/check", "/change"];
 
-router.get("/session/get", async (req, res) => {
-    console.log(`Reached ${req.baseUrl}/session/get`);
-    //TODO: Add session get function
+router.get("/session/create", async (req, res) => {
+    console.log(`Reached ${req.baseUrl}/session/create`);
+    //TODO: Add session create function
 });
 
 router.get("/session/check", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/session/check`);
     //TODO: Add session check function
+
+    let checkError = checkReqParams(req, res, ["token"]);
+    if (checkError) return checkError;
+
+    let task = dbUserUtils.checkSessionToken(req.query.token);
+    try {
+        let taskResult = await task;
+        if (!taskResult)
+            return statusReturn(res, 410, "Token expired or invalid");
+        return statusReturn(res, 200, "Token valid");
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(res, 400, "", error.message);
+        return statusReturn(res, 500);
+    }
 });
 
 router.delete("/session/expire", async (req, res) => {
@@ -199,7 +228,7 @@ router.delete("/session/expire", async (req, res) => {
     //TODO: Add session expire function
 });
 
-categoryURLs["/session"] = ["/get", "/check", "/expire"];
+categoryURLs["/session"] = ["/create", "/check", "/expire"];
 
 // Default route
 router.get("/", async (req, res) => {
