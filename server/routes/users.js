@@ -1,5 +1,6 @@
 const express = require("express");
 const dbUserUtils = require("../libs/dbUserUtils");
+const { isEmpty } = require("../libs/commonUtils");
 const router = express.Router();
 
 /**
@@ -11,7 +12,6 @@ const router = express.Router();
 function leftover(relativePath, subpaths) {
     router.all(relativePath, function (req, res) {
         console.log(`Reached ${relativePath}`);
-        //res.redirect(404, "/")
         res.status(404).json({
             error: "Invalid URL",
             title: `Category home for ${req.baseUrl + relativePath}`,
@@ -25,78 +25,142 @@ function leftover(relativePath, subpaths) {
     });
 }
 
-/** Simple function that returns a `405` response for an unallowed method.  
+/** Simple function that returns a `405` response for an unallowed method.
  * Example:
  * ```js
  * router.all("/path", methodNotAllowed)
  * ```
  */
 function methodNotAllowed(req, res) {
-    res.status(405).send(`Method ${req.method} not allowed`);
+    console.error(
+        `Rejecting method ${req.method} for path ${req.baseUrl}${req.path}`
+    );
+    statusReturn(res, 405, `Method ${req.method} not allowed`);
+}
+
+const statusMessages = {
+    200: "OK",
+    400: "Bad Request",
+    404: "Not Found",
+    405: "Method not allowed",
+    500: "Internal Server Error",
+};
+
+/**
+ * Returns a status code
+ * @param {object} res The response object to use for the return
+ * @param {int} status The status code to return
+ * @param {string} message The message to return
+ * @param {string} secMessage A secondary message to return after the primary (for instance, after a default message)
+ */
+function statusReturn(
+    res,
+    status,
+    message = undefined,
+    secMessage = undefined
+) {
+    if (isEmpty(message)) {
+        if (!(status in statusMessages))
+            throw Error(`Specify message for ${status} (none preconfigured)`);
+        message = statusMessages[status];
+    }
+
+    if (status < 400)
+        console.log(
+            `Returning status ${status} with message '${message}` +
+                `${isEmpty(secMessage) ? "" : ` - ${secMessage}`}'`
+        );
+    else
+        console.error(
+            `Returning erroneous status ${status} with message '${message}` +
+                `${isEmpty(secMessage) ? "" : ` - ${secMessage}`}'`
+        );
+
+    return res
+        .status(status)
+        .send(
+            `${status} :: ${message}` +
+                `${isEmpty(secMessage) ? "" : ` - ${secMessage}`}`
+        );
 }
 
 let categoryURLs = {};
 
+//TODO: Add session token checking for (nearly) all methods
+
 router.post("/create", function (req, res) {
-    console.log("Reached /create");
+    console.log(`Reached ${req.baseUrl}/create`);
     //TODO: Add create function
 });
 
 router.get("/get-whole", async (req, res) => {
-    console.log("Reached /get-whole");
+    console.log(`Reached ${req.baseUrl}/get-whole`);
     //TODO: Add getWhole function
 });
 
 router.put("/update-whole", async (req, res) => {
-    console.log("Reached /update-whole");
+    console.log(`Reached ${req.baseUrl}/update-whole`);
     //TODO: Add update-whole function
 });
 
 router.put("/add-data", async (req, res) => {
-    console.log("Reached /add-data");
+    console.log(`Reached ${req.baseUrl}/add-data`);
     //TODO: Add add-data function
 });
 
 router.get("/get-data", async (req, res) => {
-    console.log("Reached /get-data");
+    console.log(`Reached ${req.baseUrl}/get-data`);
     //TODO: Add get-data function
 });
 
 router.delete("/remove-data", async (req, res) => {
-    console.log("Reached /remove-data");
+    console.log(`Reached ${req.baseUrl}/remove-data`);
     //TODO: Add remove-data function
 });
 
-router.delete("/destroy", async (req, res) => { //TODO: Figure out how to make compatible with /:id as well as ?id=
+router.delete("/destroy", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/destroy`);
+    let id = req.query.id;
+    if (isEmpty(id)) {
+        return statusReturn(res, 400);
+    }
 
-    //TODO: Add destroy function
+    let task = dbUserUtils.destroyUser(id);
+    try {
+        await task;
+        return statusReturn(res, 200, "User destroyed");
+    } catch (error) {
+        console.error(error);
+        if (error.message.includes("does not exist"))
+            return statusReturn(res, 404, error.message);
+        return statusReturn(res, 500);
+    }
 });
 
 router.get("/password/check", async (req, res) => {
-    console.log("Reached /password/check");
+    console.log(`Reached ${req.baseUrl}/password/check`);
     //TODO: Add password check function
 });
 
 router.put("/password/change", async (req, res) => {
-    console.log("Reached /password/change");
+    console.log(`Reached ${req.baseUrl}/password/change`);
     //TODO: Add password change function
 });
 
 categoryURLs["/password"] = ["/check", "/change"];
 
 router.get("/session/get", async (req, res) => {
-    console.log("Reached /session/get");
+    console.log(`Reached ${req.baseUrl}/session/get`);
     //TODO: Add session get function
 });
 
 router.get("/session/check", async (req, res) => {
-    console.log("Reached /session/check");
+    console.log(`Reached ${req.baseUrl}/session/check`);
     //TODO: Add session check function
 });
 
 router.delete("/session/expire", async (req, res) => {
-    console.log("Reached /session/expire");
+    console.log(`Reached ${req.baseUrl}/session/expire`);
     //TODO: Add session expire function
 });
 
@@ -116,7 +180,7 @@ router.stack.forEach((item) => {
 
 // Configure categoryURLs with appropriate JSON response.
 Object.keys(categoryURLs).forEach((category) => {
-    leftover(category, categoryURLs[category])
-})
+    leftover(category, categoryURLs[category]);
+});
 
 module.exports = router;
