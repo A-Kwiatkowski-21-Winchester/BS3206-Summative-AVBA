@@ -134,7 +134,24 @@ router.get("/get-data", async (req, res) => {
 
 router.delete("/remove-data", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/remove-data`);
-    //TODO: Add remove-data function
+
+    let checkError = checkReqParams(req, res, ["id", "fieldName"]);
+    if (checkError) return checkError;
+
+    let task = dbUserUtils.removeUserData(req.query.id, req.query.fieldName);
+    try {
+        await task;
+        return statusReturn(
+            res,
+            200,
+            `Field '${req.query.fieldName}' removed from user ${req.query.id}`
+        );
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(res, 400, "", error.message);
+        return statusReturn(res, 500);
+    }
 });
 
 router.delete("/destroy", async (req, res) => {

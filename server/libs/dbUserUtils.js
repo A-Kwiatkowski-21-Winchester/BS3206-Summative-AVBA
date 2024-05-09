@@ -393,6 +393,8 @@ async function removeUserData(id, fieldName) {
 
     if (!promiseResult)
         throw new RequestError(`User with ID '${id}' does not exist. Could not update.`);
+    if(isEmpty(promiseResult[fieldName]))
+        throw new RequestError(`No field found with name '${fieldName}' on user ${id}. Could not remove.`)
     console.log(`Removed data in field ${fieldName} for user with id '${id}'.`);
 }
 
