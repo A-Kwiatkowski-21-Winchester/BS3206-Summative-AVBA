@@ -12,7 +12,7 @@ const router = express.Router();
 function leftover(relativePath, subpaths) {
     router.all(relativePath, function (req, res) {
         console.log(`Reached ${relativePath}`);
-        res.status(404).json({
+        statusReturnJSON(res, 404, {
             error: "Invalid URL",
             title: `Category home for ${req.baseUrl + relativePath}`,
             available_subpaths: subpaths,
@@ -47,7 +47,7 @@ const statusMessages = {
 };
 
 /**
- * Returns a status code
+ * Returns a status code with additional messages
  * @param {object} res The response object to use for the return
  * @param {int} status The status code to return
  * @param {string} message The message to return. Will attempt to use a default preconfigured message if blank
@@ -60,9 +60,15 @@ function statusReturn(
     secMessage = undefined
 ) {
     if (isEmpty(message)) {
-        if (!(status in statusMessages))
-            throw Error(`Specify message for ${status} (none preconfigured)`);
-        message = statusMessages[status];
+        if (!(status in statusMessages)) {
+            if (!isEmpty(secMessage)) {
+                message = `${secMessage}`;
+                secMessage = undefined;
+            } else
+                throw Error(
+                    `Specify message for ${status} (none preconfigured)`
+                );
+        } else message = statusMessages[status];
     }
 
     if (status < 400)
@@ -85,22 +91,40 @@ function statusReturn(
 }
 
 /**
+ * Returns a status code with JSONified data.
+ * @param {object} res The response object to use for the return
+ * @param {int} status The status code to return
+ * @param {object} data A JSON-serializable data object.
+ */ // Mostly exists for the additional console logging.
+function statusReturnJSON(res, status, data) {
+    if (status < 400) console.log(`Returning status ${status} with JSON data`);
+    else console.error(`Returning erroneous status ${status} with JSON data`);
+
+    return res.status(status).json(data);
+}
+
+/**
  * Checks the required parameters for a request and automatically returns a `400` status if one is empty or missing.
  * @param {Request<{}, any, any, qs.ParsedQs, Record<string, any>>} req The request object
  * @param {object} res The response object for the request
  * @param {string[]} paramList A list of the required parametes that should be included
  */
 function checkReqParams(req, res, paramList) {
-    return paramList.every((item) => {
-        if (isEmpty(req.query[item]))
-            return statusReturn(
+    let errorStatus;
+    paramList.every((item) => {
+        //FIXME: .every() not cycling through every item for some reason
+        // Replace with `for (const item of paramList) { }`
+        if (isEmpty(req.query[item])) {
+            errorStatus = statusReturn(
                 res,
                 400,
-                null,
+                undefined,
                 `Parameter '${item}' is blank or missing`
             );
-        return false;
+            return false;
+        }
     });
+    return errorStatus;
 }
 
 let categoryURLs = {};
@@ -114,7 +138,33 @@ router.post("/create", function (req, res) {
 
 router.get("/get-whole", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/get-whole`);
-    //TODO: Add getWhole function
+
+    let checkError = checkReqParams(req, res, ["iden"]);
+    if (checkError) return checkError;
+
+    let task = dbUserUtils.getUserWhole(req.query.iden, req.query.idenForm);
+    try {
+        let taskResult = await task;
+        if (!taskResult)
+            return statusReturn(
+                res,
+                404,
+                "Could not find user with " +
+                    `${req.query.idenForm || "id"} '${req.query.iden}'`
+            );
+        return statusReturnJSON(res, 200, taskResult);
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message +
+                    ' \n[[Hint: idenForm parameter can be "id" or "email"]]'
+            );
+        return statusReturn(res, 500);
+    }
 });
 
 router.put("/update-whole", async (req, res) => {
@@ -136,11 +186,11 @@ router.get("/get-data", async (req, res) => {
     let task = dbUserUtils.getUserData(req.query.id, req.query.fieldNames);
     try {
         let taskResult = await task;
-        return res.status(200).json(taskResult);
+        return statusReturnJSON(res, 200, taskResult);
     } catch (error) {
         console.error(error);
         if (error instanceof dbUserUtils.RequestError)
-            return statusReturn(res, 400, "", error.message);
+            return statusReturn(res, error.statusCode, undefined, error.message);
         return statusReturn(res, 500);
     }
 });
@@ -162,7 +212,7 @@ router.delete("/remove-data", async (req, res) => {
     } catch (error) {
         console.error(error);
         if (error instanceof dbUserUtils.RequestError)
-            return statusReturn(res, 400, "", error.message);
+            return statusReturn(res, error.statusCode, undefined, error.message);
         return statusReturn(res, 500);
     }
 });
@@ -180,7 +230,7 @@ router.delete("/destroy", async (req, res) => {
     } catch (error) {
         console.error(error);
         if (error instanceof dbUserUtils.RequestError)
-            return statusReturn(res, 400, "", error.message);
+            return statusReturn(res, error.statusCode, undefined, error.message);
         return statusReturn(res, 500);
     }
 });
@@ -193,6 +243,20 @@ router.get("/password/check", async (req, res) => {
 router.put("/password/change", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/password/change`);
     //TODO: Add password change function
+
+    let checkError = checkReqParams(req, res, ["id", "newPassword"]);
+    if (checkError) return checkError;
+
+    let task = dbUserUtils.changePassword(req.query.id, req.query.newPassword);
+    try {
+        await task;
+        return statusReturn(res, 200, "Password changed");
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(res, error.statusCode, undefined, error.message);
+        return statusReturn(res, 500);
+    }
 });
 
 categoryURLs["/password"] = ["/check", "/change"];
@@ -204,7 +268,6 @@ router.get("/session/create", async (req, res) => {
 
 router.get("/session/check", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/session/check`);
-    //TODO: Add session check function
 
     let checkError = checkReqParams(req, res, ["token"]);
     if (checkError) return checkError;
@@ -214,11 +277,14 @@ router.get("/session/check", async (req, res) => {
         let taskResult = await task;
         if (!taskResult)
             return statusReturn(res, 410, "Token expired or invalid");
-        return statusReturn(res, 200, "Token valid");
+        return statusReturnJSON(res, 200, {
+            message: "Token valid",
+            userID: taskResult,
+        });
     } catch (error) {
         console.error(error);
         if (error instanceof dbUserUtils.RequestError)
-            return statusReturn(res, 400, "", error.message);
+            return statusReturn(res, error.statusCode, undefined, error.message);
         return statusReturn(res, 500);
     }
 });
@@ -226,6 +292,20 @@ router.get("/session/check", async (req, res) => {
 router.delete("/session/expire", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/session/expire`);
     //TODO: Add session expire function
+
+    let checkError = checkReqParams(req, res, ["token"]);
+    if (checkError) return checkError;
+
+    let task = dbUserUtils.expireSessionToken(req.query.token);
+    try {
+        await task;
+        return statusReturn(res, 200, "Token deleted if exists");
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(res, error.statusCode, undefined, error.message);
+        return statusReturn(res, 500);
+    }
 });
 
 categoryURLs["/session"] = ["/create", "/check", "/expire"];
@@ -234,7 +314,7 @@ categoryURLs["/session"] = ["/create", "/check", "/expire"];
 router.get("/", async (req, res) => {
     //Create base code
     console.log("User API");
-    res.json({ message: "Page!" });
+    statusReturnJSON(res, 200, { message: "Page!" });
 });
 
 // For all routes configured here, if any other method, return a 405 reponse
