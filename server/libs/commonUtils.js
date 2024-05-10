@@ -35,9 +35,24 @@ function isSemEqual(string1, string2, trim = true) {
     return semEqual;
 }
 
+/**
+ * Attempts a function, returning a default value if it fails.
+ * @param {function} func An anonymous or arrow function to carry out
+ * @param {any} fail A value to return upon failure. Default `undefined`.
+ * @returns 
+ */
+function attempt(func, fail=undefined){
+    try{
+        return func()
+    } catch {
+        return fail
+    }
+}
+
 
 module.exports = {
     isValidDate,
     isEmpty,
-    isSemEqual
+    isSemEqual,
+    attempt,
 };

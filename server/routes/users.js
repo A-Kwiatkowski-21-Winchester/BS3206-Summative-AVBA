@@ -1,6 +1,6 @@
 const express = require("express");
 const dbUserUtils = require("../libs/dbUserUtils");
-const { isEmpty } = require("../libs/commonUtils");
+const { isEmpty, attempt } = require("../libs/commonUtils");
 const router = express.Router();
 
 /**
@@ -208,7 +208,39 @@ router.put("/update-whole", async (req, res) => {
 
 router.put("/add-data", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/add-data`);
-    //TODO: Add add-data function
+
+    let checkError = checkReqParams(req, res, ["id", "fieldName"]);
+    if (checkError) return checkError;
+
+    let task = dbUserUtils.addUserData(
+        req.query.id,
+        req.query.fieldName,
+        req.query.data,
+        attempt(() => JSON.parse(req.query.intoArray)),
+        attempt(() => JSON.parse(req.query.replace))
+    );
+    try {
+        await task;
+        return statusReturn(
+            res,
+            200,
+            `Data ${
+                attempt(() => JSON.parse(req.query.replace), true)
+                    ? "replaced"
+                    : "added"
+            } for field ${req.query.fieldName}`
+        );
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message
+            );
+        return statusReturn(res, 500);
+    }
 });
 
 router.get("/get-data", async (req, res) => {
