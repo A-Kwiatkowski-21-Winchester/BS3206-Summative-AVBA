@@ -599,7 +599,7 @@ async function createSessionToken(
     if (!promiseResult)
         throw new RequestError("Unknown failure. Token not generated.", 500);
     console.log(`Token generated for user '${identifier}'.`);
-    return genToken;
+    return tokenObject;
 }
 
 /**

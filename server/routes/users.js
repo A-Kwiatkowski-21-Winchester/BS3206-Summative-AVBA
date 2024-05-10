@@ -367,7 +367,36 @@ categoryURLs["/password"] = ["/check", "/change"];
 
 router.get("/session/create", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/session/create`);
-    //TODO: Add session create function
+
+    let checkError = checkReqParams(req, res, ["iden", "password"]);
+    if (checkError) return checkError;
+
+    let task = dbUserUtils.createSessionToken(
+        req.query.iden,
+        req.query.password,
+        req.query.idenForm,
+        parseFloat(req.query.expiresInHours) || undefined
+    );
+    try {
+        let taskResult = await task;
+
+        // Essentially renames the key "_id" to "_token"
+        taskResult = {token: taskResult._id, ...taskResult}
+        delete taskResult._id;
+
+        return statusReturnJSON(res, 200, taskResult);
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message +
+                    ' \n[[Hint: idenForm parameter can be "id" or "email"]]'
+            );
+        return statusReturn(res, 500);
+    }
 });
 
 router.get("/session/check", async (req, res) => {
