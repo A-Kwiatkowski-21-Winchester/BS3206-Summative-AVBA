@@ -105,7 +105,7 @@ function statusReturnJSON(res, status, data) {
 
 /**
  * Checks the required parameters for a request and automatically returns a `400` status if one is empty or missing.
- * @param {Request<{}, any, any, qs.ParsedQs, Record<string, any>>} req The request object
+ * @param {Request>} req The request object
  * @param {object} res The response object for the request
  * @param {string[]} paramList A list of the required parametes that should be included
  */
@@ -131,9 +131,26 @@ let categoryURLs = {};
 
 //TODO: Add session token checking for (nearly) all methods
 
-router.post("/create", function (req, res) {
+router.post("/create", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/create`);
-    //TODO: Add create function
+
+    // No parameter checking (too many to track), the function will return the necessary error as needed
+
+    let task = dbUserUtils.createUser(req.query);
+    try {
+        let taskResult = await task;
+        return statusReturnJSON(res, 200, { id: taskResult });
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message
+            );
+        return statusReturn(res, 500);
+    }
 });
 
 router.get("/get-whole", async (req, res) => {
@@ -169,7 +186,24 @@ router.get("/get-whole", async (req, res) => {
 
 router.put("/update-whole", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/update-whole`);
-    //TODO: Add update-whole function
+
+    // No parameter checking (too many to track), the function will return the necessary error as needed
+
+    let task = dbUserUtils.updateUserWhole(req.query);
+    try {
+        await task;
+        return statusReturn(res, 200, "User updated");
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message
+            );
+        return statusReturn(res, 500);
+    }
 });
 
 router.put("/add-data", async (req, res) => {
@@ -190,7 +224,12 @@ router.get("/get-data", async (req, res) => {
     } catch (error) {
         console.error(error);
         if (error instanceof dbUserUtils.RequestError)
-            return statusReturn(res, error.statusCode, undefined, error.message);
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message
+            );
         return statusReturn(res, 500);
     }
 });
@@ -212,7 +251,12 @@ router.delete("/remove-data", async (req, res) => {
     } catch (error) {
         console.error(error);
         if (error instanceof dbUserUtils.RequestError)
-            return statusReturn(res, error.statusCode, undefined, error.message);
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message
+            );
         return statusReturn(res, 500);
     }
 });
@@ -230,7 +274,12 @@ router.delete("/destroy", async (req, res) => {
     } catch (error) {
         console.error(error);
         if (error instanceof dbUserUtils.RequestError)
-            return statusReturn(res, error.statusCode, undefined, error.message);
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message
+            );
         return statusReturn(res, 500);
     }
 });
@@ -244,13 +293,17 @@ router.get("/password/check", async (req, res) => {
     let task = dbUserUtils.checkPassword(req.query.id, req.query.password);
     try {
         let taskResult = await task;
-        if (!taskResult)
-            return statusReturn(res, 403, "Password check failed");
+        if (!taskResult) return statusReturn(res, 403, "Password check failed");
         return statusReturn(res, 200, "Password match");
     } catch (error) {
         console.error(error);
         if (error instanceof dbUserUtils.RequestError)
-            return statusReturn(res, error.statusCode, undefined, error.message);
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message
+            );
         return statusReturn(res, 500);
     }
 });
@@ -268,7 +321,12 @@ router.put("/password/change", async (req, res) => {
     } catch (error) {
         console.error(error);
         if (error instanceof dbUserUtils.RequestError)
-            return statusReturn(res, error.statusCode, undefined, error.message);
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message
+            );
         return statusReturn(res, 500);
     }
 });
@@ -298,7 +356,12 @@ router.get("/session/check", async (req, res) => {
     } catch (error) {
         console.error(error);
         if (error instanceof dbUserUtils.RequestError)
-            return statusReturn(res, error.statusCode, undefined, error.message);
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message
+            );
         return statusReturn(res, 500);
     }
 });
@@ -316,7 +379,12 @@ router.delete("/session/expire", async (req, res) => {
     } catch (error) {
         console.error(error);
         if (error instanceof dbUserUtils.RequestError)
-            return statusReturn(res, error.statusCode, undefined, error.message);
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message
+            );
         return statusReturn(res, 500);
     }
 });

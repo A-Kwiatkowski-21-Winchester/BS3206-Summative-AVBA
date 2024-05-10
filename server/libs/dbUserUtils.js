@@ -106,7 +106,7 @@ const requiredFields = {
     firstName: ["string"],
     lastName: ["string"],
     dob: ["object", "uses Date object"],
-    sex: ["number", "uses dbUserUtils.sex enum"],
+    sex: ["int", "uses dbUserUtils.sex enum"],
     email: ["string"],
     password: ["string", "should be pre-hashed using SHA-256"],
     phone: ["string"],
@@ -117,12 +117,15 @@ const requiredFields = {
  * Checks a UserObject's fields to ensure it:
  * - Has all the required fields, and
  * - Fields like `sex` and `dob` follow the correct format
- * @param {object} userObject
+ * @param {object} userObject The user object to check the fields for
+ * @param {string[]} ignoredFields Any fields to ignore in the checks
  */
-function checkUserReqFields(userObject) {
+function checkUserReqFields(userObject, ignoredFields=[]) {
     for (const field of Object.keys(requiredFields)) {
+        if(ignoredFields.includes(field)) continue;
+        let fieldValue = userObject[field];
         // If field does not exist
-        if (isEmpty(userObject[field]))
+        if (isEmpty(fieldValue))
             throw new RequestError(
                 `Field '${field}' is required but was not found.`
             );
@@ -132,16 +135,38 @@ function checkUserReqFields(userObject) {
             let errorStr =
                 `Field '${field}' was not of required type '${requiredFields[field][0]}'` +
                 ` (was instead '${typeof userObject[field]}').`;
-            if (field == "sex")
-                errorStr += ` For field '${field}', use the sex enum (${sex}).`;
-            if (field == "dob")
-                errorStr += ` For field '${field}', use the Date class.`;
-            throw new RequestError(errorStr);
+            if (field == "sex") {
+                if (isNaN((userObject["sex"] = parseInt(fieldValue))))
+                    errorStr +=
+                        ` For field '${field}', use the sex enum ` +
+                        `(${JSON.stringify(sex)}).`;
+                else errorStr = undefined; // Cancel error
+            }
+            if (field == "dob") {
+                try {
+                    userObject["dob"] = new Date(Date.parse(fieldValue));
+                    errorStr = undefined; // Cancel error
+                } catch {
+                    errorStr += ` For field '${field}', use the Date class.`;
+                }
+            }
+            if (requiredFields[field][0] == "boolean") {
+                try {
+                    userObject[field] = JSON.parse(fieldValue);
+                    errorStr = undefined;
+                } catch {
+                    errorStr += ` For field '${field}', use "true" or "false".`;
+                }
+            }
+            if (!isEmpty(errorStr)) throw new RequestError(errorStr);
         }
     }
 
     if (!isValidDate(userObject["dob"]))
-        throw new RequestError(`Date for 'dob' is invalid.`);
+        throw new RequestError("Date for 'dob' is invalid.");
+
+    if (!(userObject["sex"] in Object.values(sex)))
+        throw new RequestError(`'sex' is not one of: ${JSON.stringify(sex)}`);
 }
 
 //#endregion
@@ -179,7 +204,7 @@ function listRequiredFields() {
  * @returns {number} The ID of the newly created user.
  * @throws Various `Error`s when fields are missing or invalid.
  */
-function createUser(userObject) {
+async function createUser(userObject) {
     // If "(_)id" key is anywhere in the userObject
     if (Object.keys(userObject).find((key) => key.match(idRegex)))
         throw new RequestError(
@@ -207,6 +232,9 @@ function createUser(userObject) {
     let insertPromise = getCollection(userDataCollection).insertOne(userObject);
     insertPromise.finally(() => dbconnect.closeClient());
     insertPromise.then(() => console.log("Insertion complete."));
+    let promiseResult = await insertPromise;
+    if (!promiseResult) throw new RequestError("Unable to create user", 500);
+    return promiseResult.insertedId;
 }
 
 /**
@@ -243,21 +271,30 @@ async function updateUserWhole(userObject) {
             "No '_id' found in userObject; one should be included to update user. " +
                 'If this is a new user, use the "create user" function.'
         );
-    checkUserReqFields(userObject);
+    checkUserReqFields(userObject, ["password"]);
 
-    let userPassword = await getPassword(userObject._id);
-    userObject.password = userPassword; // Replaces any manually set password with one from the database.
+    try {
+        let userPassword = await getPassword(userObject._id);
+        userObject.password = userPassword; // Replaces any manually set password with one from the database.
+    } catch (error) {
+        if (error.statusCode == 404)
+            throw new RequestError(
+                `User with ID '${userObject._id}' does not exist. Could not update.`,
+                404
+            );
+        else throw error
+    }
 
     prepClient();
     let updatePromise = getCollection(userDataCollection).findOneAndReplace(
-        { _id: userObject.id },
+        { _id: userObject._id },
         userObject
     );
     updatePromise.finally(() => dbconnect.closeClient());
     let promiseResult = await updatePromise;
     if (!promiseResult)
         throw new RequestError(
-            `User with ID '${userObject.id}' does not exist. Could not update.`,
+            `User with ID '${userObject._id}' does not exist. Could not update.`,
             404
         );
 }
