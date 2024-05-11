@@ -110,21 +110,16 @@ function statusReturnJSON(res, status, data) {
  * @param {string[]} paramList A list of the required parametes that should be included
  */
 function checkReqParams(req, res, paramList) {
-    let errorStatus;
-    paramList.every((item) => {
-        //FIXME: .every() not cycling through every item for some reason
-        // Replace with `for (const item of paramList) { }`
+    for (const item of paramList) {
         if (isEmpty(req.query[item])) {
-            errorStatus = statusReturn(
+            return statusReturn(
                 res,
                 400,
                 undefined,
                 `Parameter '${item}' is blank or missing`
             );
-            return false;
         }
-    });
-    return errorStatus;
+    }
 }
 
 let categoryURLs = {};
@@ -381,7 +376,7 @@ router.get("/session/create", async (req, res) => {
         let taskResult = await task;
 
         // Essentially renames the key "_id" to "_token"
-        taskResult = {token: taskResult._id, ...taskResult}
+        taskResult = { token: taskResult._id, ...taskResult };
         delete taskResult._id;
 
         return statusReturnJSON(res, 200, taskResult);

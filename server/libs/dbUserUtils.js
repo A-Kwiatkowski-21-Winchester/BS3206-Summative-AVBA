@@ -621,7 +621,7 @@ async function checkSessionToken(token) {
     let tokenExpiry = promiseResult.expiry;
 
     // If expiry is before now (i.e. expired) - invalid
-    if (tokenExpiry <= new Date()) return false;
+    if (!tokenExpiry || tokenExpiry <= new Date()) return false;
     // Otherwise, token is valid
     return promiseResult.userID;
 }
