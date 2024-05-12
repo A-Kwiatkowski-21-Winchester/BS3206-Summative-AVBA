@@ -33,7 +33,7 @@ function leftover(relativePath, subpaths) {
  */
 function methodNotAllowed(req, res) {
     console.error(
-        `Rejecting method ${req.method} for path ${req.baseUrl}${req.path}`
+        `Rejecting method ${req.method} for path ${req.baseUrl}${req.path}\n`
     );
     statusReturn(res, 405, `Method ${req.method} not allowed`);
 }
@@ -74,12 +74,12 @@ function statusReturn(
     if (status < 400)
         console.log(
             `Returning status ${status} with message '${message}` +
-                `${isEmpty(secMessage) ? "" : ` - ${secMessage}`}'`
+                `${isEmpty(secMessage) ? "" : ` - ${secMessage}`}'\n`
         );
     else
         console.error(
             `Returning erroneous status ${status} with message '${message}` +
-                `${isEmpty(secMessage) ? "" : ` - ${secMessage}`}'`
+                `${isEmpty(secMessage) ? "" : ` - ${secMessage}`}'\n`
         );
 
     return res
@@ -97,8 +97,9 @@ function statusReturn(
  * @param {object} data A JSON-serializable data object.
  */ // Mostly exists for the additional console logging.
 function statusReturnJSON(res, status, data) {
-    if (status < 400) console.log(`Returning status ${status} with JSON data`);
-    else console.error(`Returning erroneous status ${status} with JSON data`);
+    if (status < 400)
+        console.log(`Returning status ${status} with JSON data\n`);
+    else console.error(`Returning erroneous status ${status} with JSON data\n`);
 
     return res.status(status).json(data);
 }
@@ -124,7 +125,9 @@ function checkReqParams(req, res, paramList) {
 
 let categoryURLs = {};
 
-//TODO: Add session token checking for (nearly) all methods
+/* TODO: Add session token checking for (nearly) all methods
+Can be done via cookies. Set it on creation and for any time when it has to be verified, take the session-token cookie from `req`.
+*/
 
 router.post("/create", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/create`);
@@ -378,7 +381,13 @@ router.get("/session/create", async (req, res) => {
         // Essentially renames the key "_id" to "_token"
         taskResult = { token: taskResult._id, ...taskResult };
         delete taskResult._id;
-
+        console.log(req.headers.cookie);
+        res.cookie("session-token", taskResult.token, {
+            expires: taskResult.expiry,
+        });
+        res.cookie("user-id", taskResult.userID, {
+            expires: taskResult.expiry,
+        });
         return statusReturnJSON(res, 200, taskResult);
     } catch (error) {
         console.error(error);
@@ -403,8 +412,11 @@ router.get("/session/check", async (req, res) => {
     let task = dbUserUtils.checkSessionToken(req.query.token);
     try {
         let taskResult = await task;
-        if (!taskResult)
+        if (!taskResult) {
+            res.cookie("session-token", "", { maxAge: 1000 /*ms*/ });
+            res.cookie("user-id", "", { maxAge: 1000 /*ms*/ });
             return statusReturn(res, 410, "Token expired or invalid");
+        }
         return statusReturnJSON(res, 200, {
             message: "Token valid",
             userID: taskResult,
@@ -431,6 +443,8 @@ router.delete("/session/expire", async (req, res) => {
     let task = dbUserUtils.expireSessionToken(req.query.token);
     try {
         await task;
+        res.cookie("session-token", "", { maxAge: 1000 /*ms*/ });
+        res.cookie("user-id", "", { maxAge: 1000 /*ms*/ });
         return statusReturn(res, 200, "Token deleted if exists");
     } catch (error) {
         console.error(error);
