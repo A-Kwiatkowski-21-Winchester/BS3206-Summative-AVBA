@@ -33,7 +33,7 @@ function leftover(relativePath, subpaths) {
  */
 function methodNotAllowed(req, res) {
     console.error(
-        `Rejecting method ${req.method} for path ${req.baseUrl}${req.path}\n`
+        `Rejecting method ${req.method} for path ${req.baseUrl}${req.path}`
     );
     statusReturn(res, 405, `Method ${req.method} not allowed`);
 }
@@ -109,25 +109,111 @@ function statusReturnJSON(res, status, data) {
  * @param {Request>} req The request object
  * @param {object} res The response object for the request
  * @param {string[]} paramList A list of the required parametes that should be included
+ * @param {string} addErrorText *(optional)* Additional text to include with the error
  */
-function checkReqParams(req, res, paramList) {
+function checkReqParams(req, res, paramList, addErrorText = undefined) {
     for (const item of paramList) {
         if (isEmpty(req.query[item])) {
             return statusReturn(
                 res,
                 400,
                 undefined,
-                `Parameter '${item}' is blank or missing`
+                `Parameter '${item}' is blank or missing. ` +
+                    `${isEmpty(addErrorText) ? "" : addErrorText}`
             );
         }
     }
 }
 
-let categoryURLs = {};
+/**
+ * Checks a session token to ensure it's valid.
+ * @param {*} req The request object
+ * @param {*} res The response object
+ * @param {*} token *(optional)* A token to check. If none is provided, the `session_token` cookie will be read from the request object.
+ * @param {*} userID *(optional)* A userID to check the token against. If none is provided, the `user_ID` cookie will be read from the request object.
+ * @returns {Promise<{valid: true; userID: string;} | {valid: false; error: any;}>}
+ * An object containing `valid: true | false`, and either `userID: userID` or `error: responseError` respectively.
+ */
+async function verifyToken(req, res, token = undefined, userID = undefined) {
+    //console.log("Cookies:", req.cookies);
 
-/* TODO: Add session token checking for (nearly) all methods
-Can be done via cookies. Set it on creation and for any time when it has to be verified, take the session-token cookie from `req`.
-*/
+    if (isEmpty(token)) token = req.cookies["session_token"];
+    if (isEmpty(userID)) userID = req.cookies["user_id"];
+
+    if (isEmpty(token) || isEmpty(userID))
+        return {
+            valid: false,
+            error: statusReturn(
+                res,
+                401,
+                "Either token or userID is missing or corrupt."
+            ),
+        };
+
+    let task = dbUserUtils.checkSessionToken(token);
+    try {
+        let taskResult = await task;
+        if (!taskResult)
+            return {
+                valid: false,
+                error: statusReturn(
+                    res,
+                    401,
+                    "Session token in cookie is expired or invalid"
+                ),
+            };
+        let belongsToAdmin;
+        if (
+            taskResult != userID ||
+            !(belongsToAdmin = await isAdmin(taskResult))
+        )
+            return {
+                valid: false,
+                error: statusReturn(
+                    res,
+                    403,
+                    "User ID in cookie does not match token, or is not admin-level"
+                ),
+            };
+        console.log(
+            "Token is valid -",
+            belongsToAdmin ? "is admin-level" : "matches provided user ID"
+        );
+        return { valid: true, userID: taskResult };
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return {
+                valid: false,
+                error: statusReturn(
+                    res,
+                    error.statusCode,
+                    undefined,
+                    error.message
+                ),
+            };
+        return { valid: false, error: statusReturn(res, 500) };
+    }
+}
+
+/**
+ * Checks if the user provided is of admin-level or not
+ * @param {string} id The ID of the user to check
+ * @returns `true` or `false`
+ */
+async function isAdmin(id) {
+    let getTask = dbUserUtils.getUserData(id, "isAdmin");
+    try {
+        let taskResult = await getTask;
+        if (!taskResult) return false;
+        return true;
+    } catch (error) {
+        console.error(error);
+        return;
+    }
+}
+
+let categoryURLs = {};
 
 router.post("/create", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/create`);
@@ -156,6 +242,9 @@ router.get("/get-whole", async (req, res) => {
 
     let checkError = checkReqParams(req, res, ["iden"]);
     if (checkError) return checkError;
+
+    let tokenCheck = await verifyToken(req, res);
+    if (!tokenCheck.valid) return tokenCheck.error;
 
     let task = dbUserUtils.getUserWhole(req.query.iden, req.query.idenForm);
     try {
@@ -187,6 +276,9 @@ router.put("/update-whole", async (req, res) => {
 
     // No parameter checking (too many to track), the function will return the necessary error as needed
 
+    let tokenCheck = await verifyToken(req, res);
+    if (!tokenCheck.valid) return tokenCheck.error;
+
     let task = dbUserUtils.updateUserWhole(req.query);
     try {
         await task;
@@ -209,6 +301,9 @@ router.put("/add-data", async (req, res) => {
 
     let checkError = checkReqParams(req, res, ["id", "fieldName"]);
     if (checkError) return checkError;
+
+    let tokenCheck = await verifyToken(req, res);
+    if (!tokenCheck.valid) return tokenCheck.error;
 
     let task = dbUserUtils.addUserData(
         req.query.id,
@@ -247,6 +342,9 @@ router.get("/get-data", async (req, res) => {
     let checkError = checkReqParams(req, res, ["id", "fieldNames"]);
     if (checkError) return checkError;
 
+    let tokenCheck = await verifyToken(req, res);
+    if (!tokenCheck.valid) return tokenCheck.error;
+
     let task = dbUserUtils.getUserData(req.query.id, req.query.fieldNames);
     try {
         let taskResult = await task;
@@ -269,6 +367,9 @@ router.delete("/remove-data", async (req, res) => {
 
     let checkError = checkReqParams(req, res, ["id", "fieldName"]);
     if (checkError) return checkError;
+
+    let tokenCheck = await verifyToken(req, res);
+    if (!tokenCheck.valid) return tokenCheck.error;
 
     let task = dbUserUtils.removeUserData(req.query.id, req.query.fieldName);
     try {
@@ -297,6 +398,9 @@ router.delete("/destroy", async (req, res) => {
     let checkError = checkReqParams(req, res, ["id"]);
     if (checkError) return checkError;
 
+    let tokenCheck = await verifyToken(req, res);
+    if (!tokenCheck.valid) return tokenCheck.error;
+
     let task = dbUserUtils.destroyUser(req.query.id);
     try {
         await task;
@@ -319,6 +423,9 @@ router.get("/password/check", async (req, res) => {
 
     let checkError = checkReqParams(req, res, ["id", "password"]);
     if (checkError) return checkError;
+
+    let tokenCheck = await verifyToken(req, res);
+    if (!tokenCheck.valid) return tokenCheck.error;
 
     let task = dbUserUtils.checkPassword(req.query.id, req.query.password);
     try {
@@ -343,6 +450,9 @@ router.put("/password/change", async (req, res) => {
 
     let checkError = checkReqParams(req, res, ["id", "newPassword"]);
     if (checkError) return checkError;
+
+    let tokenCheck = await verifyToken(req, res);
+    if (!tokenCheck.valid) return tokenCheck.error;
 
     let task = dbUserUtils.changePassword(req.query.id, req.query.newPassword);
     try {
@@ -381,11 +491,11 @@ router.get("/session/create", async (req, res) => {
         // Essentially renames the key "_id" to "_token"
         taskResult = { token: taskResult._id, ...taskResult };
         delete taskResult._id;
-        console.log(req.headers.cookie);
-        res.cookie("session-token", taskResult.token, {
+
+        res.cookie("session_token", taskResult.token, {
             expires: taskResult.expiry,
         });
-        res.cookie("user-id", taskResult.userID, {
+        res.cookie("user_id", taskResult.userID, {
             expires: taskResult.expiry,
         });
         return statusReturnJSON(res, 200, taskResult);
@@ -405,16 +515,30 @@ router.get("/session/create", async (req, res) => {
 
 router.get("/session/check", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/session/check`);
+    let token;
 
-    let checkError = checkReqParams(req, res, ["token"]);
-    if (checkError) return checkError;
+    // Manual param check with fallback instead of checkReqParams()
+    if (
+        isEmpty((token = req.query.token)) &&
+        isEmpty((token = req.cookies.session_token))
+    )
+        return statusReturn(
+            res,
+            400,
+            undefined,
+            `Parameter 'token' is blank or missing. ` +
+                "Fallback failed: No session token present in cookies"
+        );
 
-    let task = dbUserUtils.checkSessionToken(req.query.token);
+    let tokenCheck = await verifyToken(req, res);
+    if (!tokenCheck.valid) return tokenCheck.error;
+
+    let task = dbUserUtils.checkSessionToken(token);
     try {
         let taskResult = await task;
         if (!taskResult) {
-            res.cookie("session-token", "", { maxAge: 1000 /*ms*/ });
-            res.cookie("user-id", "", { maxAge: 1000 /*ms*/ });
+            res.cookie("session_token", "", { maxAge: 1000 /*ms*/ });
+            res.cookie("user_id", "", { maxAge: 1000 /*ms*/ });
             return statusReturn(res, 410, "Token expired or invalid");
         }
         return statusReturnJSON(res, 200, {
@@ -436,15 +560,28 @@ router.get("/session/check", async (req, res) => {
 
 router.delete("/session/expire", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/session/expire`);
+    let token;
 
-    let checkError = checkReqParams(req, res, ["token"]);
-    if (checkError) return checkError;
+    // Manual param check with fallback instead of checkReqParams()
+    if (
+        isEmpty((token = req.query.token)) &&
+        isEmpty((token = req.cookies.session_token))
+    )
+        return statusReturn(
+            res,
+            400,
+            undefined,
+            `Parameter 'token' is blank or missing. ` +
+                "Fallback failed: No session token present in cookies"
+        );
 
-    let task = dbUserUtils.expireSessionToken(req.query.token);
+    let tokenCheck = await verifyToken(req, res);
+    if (!tokenCheck.valid) return tokenCheck.error;
+    let task = dbUserUtils.expireSessionToken(token);
     try {
         await task;
-        res.cookie("session-token", "", { maxAge: 1000 /*ms*/ });
-        res.cookie("user-id", "", { maxAge: 1000 /*ms*/ });
+        res.cookie("session_token", "", { maxAge: 1000 /*ms*/ });
+        res.cookie("user_id", "", { maxAge: 1000 /*ms*/ });
         return statusReturn(res, 200, "Token deleted if exists");
     } catch (error) {
         console.error(error);

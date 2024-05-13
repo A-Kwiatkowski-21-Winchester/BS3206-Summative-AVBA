@@ -605,7 +605,7 @@ async function createSessionToken(
 /**
  * Verifies if a session token exists, and if it is in-date.
  * @param {string} token The token to verify
- * @returns A Promise which resolves to `true` if the token is valid.
+ * @returns A Promise which resolves to the user ID if the token is valid, or `false` if it is not.
  */
 async function checkSessionToken(token) {
     if (isEmpty(token))
