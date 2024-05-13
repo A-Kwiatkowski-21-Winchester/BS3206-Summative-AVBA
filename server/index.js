@@ -3,11 +3,15 @@ const cors = require('cors');
 
 const express = require('express');
 
+const bmiroutes = require('./routes/bmiroutes')
+
 PORT = process.env.PORT || 4000;
 
 const app = express();
 
 app.use(cors());
+
+app.use(express.json());
 
 let env;
 try {
@@ -17,13 +21,11 @@ try {
 }
 
 
-let dbExample = require('./examples/dbconnect-exampleuse');
-dbExample.exampleRun();
+// let dbExample = require('./examples/dbconnect-exampleuse');
+// dbExample.exampleRun();
 
 
-app.get('/', (req, res) => {
-    res.send('Hello universe!');
-});
+app.use('/api/bmi', bmiroutes)
 
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
