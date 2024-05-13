@@ -1,6 +1,7 @@
 const express = require("express");
 const dbUserUtils = require("../libs/dbUserUtils");
 const { isEmpty, attempt } = require("../libs/commonUtils");
+const path = require("path");
 const router = express.Router();
 
 /**
@@ -598,11 +599,25 @@ router.delete("/session/expire", async (req, res) => {
 
 categoryURLs["/session"] = ["/create", "/check", "/expire"];
 
-// Default route
+// Base route
 router.get("/", async (req, res) => {
+    console.log(`Reached ${req.baseUrl}/ (root)`);
+    return res.status(300).sendFile(path.join(__dirname, "/docs/user.html"));
     //Create base code
-    console.log("User API");
-    statusReturnJSON(res, 200, { message: "Page!" });
+});
+
+// Default route
+router.get("/*", async (req, res) => {
+    console.error(
+        `Attempted to reach non-existent path at ${req.baseUrl}${req.path}`
+    );
+    console.log(`Caught under ${req.baseUrl}/*`);
+    return statusReturn(
+        res,
+        404,
+        "Page not found",
+        "See /api/users for possible paths"
+    );
 });
 
 // For all routes configured here, if any other method, return a 405 reponse

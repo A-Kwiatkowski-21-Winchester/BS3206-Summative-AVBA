@@ -1,0 +1,71 @@
+body {
+  background-color: #333;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  color: #eee;
+}
+
+code {
+  font-family: "Cascadia Mono", Consolas, monospace;
+  border: 1px solid;
+  border-radius: 5px;
+  padding-inline: 5px;
+  background-color: #222;
+  color: #eee;
+  font-size: 1em
+}
+.plain {
+  border: 0px;
+  background-color: transparent;
+  padding-inline: 1px;
+}
+.subtle {
+    border: 0px;
+    background-color: #282828;
+    padding-inline: 3px;
+    color: #cecece;
+  }
+
+pre code {
+  display: block;
+  padding: 10px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #fed;
+}
+.auth::after {
+  content: "⍣" / "requires authorization";
+  padding-left: 5px;
+  color: rgb(255, 214, 0);
+  right: 100%;
+}
+.auth:hover::after {
+  content: "⍣ requires authorization";
+  font-size: 12;
+}
+
+h2 {
+  border-top: 3px solid #666;
+  padding-top: 6px;
+  margin-top: 30px;
+}
+
+h3 {
+  border-top: 2px solid #444;
+  padding-top: 6px;
+}
+
+a {
+  color: orange;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: darkorange;
+}
