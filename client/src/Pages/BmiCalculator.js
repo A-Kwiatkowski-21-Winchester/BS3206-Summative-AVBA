@@ -11,18 +11,19 @@ const BMI = () => {
     const [msg, setMsg] = useState('');
     const [weightSystem, setWeightSystem] = useState('metric'); // Default to metric
 
-    const reload = () => {
-        window.location.reload();
-    };
+    // const reload = () => {
+    //     window.location.reload();
+    // };
     
     async function saveData(){
+        // e.preventDefault();
         const bmiDetails = {
-            age,
+            // age,
             weight,
-            height,
-            feet,
-            inches,
-            bmi
+            // height,
+            // feet,
+            // inches,
+            // bmi
         }
         const apiCall = await fetch('http://localhost:8080/api/bmi/create', {
             method:'POST', 
@@ -115,14 +116,14 @@ const BMI = () => {
                         </select>
                     </div>
 
-                    <div>
+                    {/* <div>
                         <button className="btn" type="submit">Calculate</button>
                         <button className="btn btn-reload" type="button" onClick={reload}>Reload</button>
-                    </div>
+                    </div> */}
 
                     <div>
                         <button className="btn" type="submit">Save</button>
-                        <button className="btn btn-reload" type="button" onClick={reload}>Reload</button>
+                        {/* <button className="btn btn-reload" type="button" onClick={reload}>Reload</button> */}
                     </div>
                 </form>
 
