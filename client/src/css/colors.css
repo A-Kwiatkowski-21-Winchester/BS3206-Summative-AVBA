@@ -1,0 +1,13 @@
+/* Colors being used should be sourced from here, allowing for global palette changes */
+:root {
+    --text:#000000;
+    --invertedtext:#ffffff;
+    --headerbackground:#ceffef;
+    --navbarbackground:#8dd6e9;
+    --navbaritembackground:#7fffd4;
+    --navbaritemborder:#75ecc5;
+    --navbaritemactivebackground:#008b8b;
+    --navbaritemactiveborder:#00008b;
+    --navbardropdown:#03a7a7;
+    --navbaractivedropdown:#018181;
+    }
