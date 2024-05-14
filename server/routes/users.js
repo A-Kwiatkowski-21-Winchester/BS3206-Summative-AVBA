@@ -421,6 +421,32 @@ router.delete("/destroy", async (req, res) => {
     }
 });
 
+router.get("/check-email", async (req, res) => {
+    console.log(`Reached ${req.baseURL}/check-email`);
+    let checkError = checkReqParams(req, res, ["email"]);
+    if (checkError) return checkError;
+
+    let task = dbUserUtils.getUserData(req.query.email, "_id", "email");
+    try {
+        let taskResult = await task;
+        if (!taskResult) return statusReturn(res, 404, "No record found");
+        return statusReturnJSON(res, 200, {
+            message: `Account with email '${req.query.email}' exists`,
+            userID: taskResult._id,
+        });
+    } catch (error) {
+        console.error(error);
+        if (error instanceof dbUserUtils.RequestError)
+            return statusReturn(
+                res,
+                error.statusCode,
+                undefined,
+                error.message
+            );
+        return statusReturn(res, 500);
+    }
+});
+
 router.get("/password/check", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/password/check`);
 
