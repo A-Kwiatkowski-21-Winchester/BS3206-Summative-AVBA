@@ -3,7 +3,7 @@ import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/navbar';
 import AccountBar from './components/accountbar';
-import { Home, SignUp, Contact } from './pages/pageindex';
+import { Home, SignUp, Contact } from './Pages/pageindex';
 import "./css/general.css";
 import logo512 from './devLogo.png'
 

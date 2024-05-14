@@ -19,6 +19,18 @@ const Navbar = () => {
                 <li><NavLink className="navbar-item" activeClassName="is-active" to="/contact">Contact Us</NavLink></li>
                 <li>
                     <div className="dropdown-container">
+                        <NavLink className="dropdown-navbar" to="/">Bmi</NavLink>
+                        <div className="dropdown-content">
+                            <li>Bmi Information</li>
+                            <li>Bmi Calculator</li>
+                            <li>Bmi Tracker</li>
+                        </div>
+
+                    </div>
+
+                </li>
+                <li>
+                    <div className="dropdown-container">
                         <NavLink className="dropdown-navbar" to="/">Dropdown</NavLink>
                         <div className="dropdown-content">
                             <li>ddd</li>
