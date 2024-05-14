@@ -3,6 +3,7 @@ const dbUserUtils = require("../libs/dbUserUtils");
 const { isEmpty, attempt } = require("../libs/commonUtils");
 const path = require("path");
 const router = express.Router();
+const fs = require("node:fs");
 
 /**
  * Creates automatic functions that help handle "category" URLs, like
@@ -257,7 +258,7 @@ router.get("/get-whole", async (req, res) => {
                 "Could not find user with " +
                     `${req.query.idenForm || "id"} '${req.query.iden}'`
             );
-        delete taskResult.password
+        delete taskResult.password;
         return statusReturnJSON(res, 200, taskResult);
     } catch (error) {
         console.error(error);
@@ -603,9 +604,38 @@ categoryURLs["/session"] = ["/create", "/check", "/expire"];
 // Base route
 router.get("/", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/ (root)`);
-    return res.status(300).sendFile(path.join(__dirname, "/docs/user.html"));
-    //TODO: Differentiate between HTML-capable requests and other (convert to plaintext)
-    //Create base code
+
+    const docFile = path.join(__dirname, "/docs/user.html");
+
+    // HTML Documentation
+    if (req.headers.accept.includes("text/html"))
+        return res.status(300).sendFile(docFile);
+
+    // JSON Subpath List
+    if (req.headers.accept.includes("application/json"))
+        return statusReturnJSON(res, 300, {
+            message:
+                "Review HTML or plaintext documentation for additional information",
+            // prettier-ignore
+            available_subpaths: [
+                "/create", "/get-whole", "/update-whole", 
+                "/add-data", "/get-data", "/remove-data", "/destroy",
+                "/password/check", "/password/change",
+                "/session/create", "/session/check", "/session/expire"
+            ],
+        });
+
+    // Plaintext documentation (converted from HTML)
+    return fs.readFile(docFile, "utf8", (err, htmlData) => {
+        if (err) {
+            console.error(err);
+            return statusReturn(res, 500);
+        }
+        let plainData =
+            "** Your client does not support HTML. Converting to plaintext. **\n\n".toUpperCase();
+        plainData += htmlData.replace(/<.*?>/gs, ""); //remove HTML tags
+        return res.status(300).send(plainData);
+    });
 });
 
 router.get("/docs.css", function (req, res) {
