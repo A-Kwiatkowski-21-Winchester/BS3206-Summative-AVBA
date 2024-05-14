@@ -39,7 +39,10 @@
   <code>sex</code> - Legal sex, where <code class="subtle">0 = MALE</code>,
   <code class="subtle">1 = FEMALE</code>, and <code class="subtle">2 = OTHER</code>.
 </p>
-<p><code>email</code> - Email address.</p>
+<p>
+  <code>email</code> - Email address. Recommended to be forced to lowercase to prevent lookup
+  complications stemming from differences in capitalization.
+</p>
 <p id="required-fields--password">
   <code>password</code> - The password for the account. This should not be sent as plaintext, but
   SHA-256 hashed. Whenever using functions like
@@ -154,6 +157,29 @@ console.log(result);
 <details>
   <summary>Updating an existing user wholly</summary>
   <pre><code>http://localhost:8080/api/users/update-whole?_id=5356772&title=mr&firstName=Markus&lastName=Finchley&dob=2000-12-15&sex=0&email=marko%40em.co&password=doesntmatter&phone=077584475523&isAdmin=false</code></pre>
+</details>
+
+<h3 id="check-email"><code>/check-email</code> - Check if email is registered</h3>
+<p>This is a <code class="subtle">GET</code> method.</p>
+<h4>Parameters:</h4>
+<p>
+  <code>email</code> - The email to check against the database. This is recommended to be forced to
+  lowercase to prevent lookup complications stemming from differences in capitalization.
+</p>
+<h4>Return values:</h4>
+<p>
+  <code class="subtle">200: OK</code> - JSON data containing
+  <code class="subtle">message: "Account (...) exists"</code> and the
+  <code class="subtle">userID</code> of the found user.
+</p>
+<p>
+  <code class="subtle">404: NOT FOUND</code> - The <code class="subtle">email</code> did not match
+  any users.
+</p>
+<h4>Examples:</h4>
+<details>
+  <summary>Checking to see if email <code class="subtle">marko@em.co</code> is registered</summary>
+  <pre><code>http://localhost:8080/api/users/check-email?email=marko%40em.co</code></pre>
 </details>
 
 <h3 id="add-data" class="auth"><code>/add-data</code> - Add data to a user</h3>
