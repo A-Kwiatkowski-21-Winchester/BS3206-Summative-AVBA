@@ -40,12 +40,12 @@ export default function ViewAllArticles(){
     return(
         <div>
             <h1 className="title">Mental Health Articles</h1>
-            <label>Search</label>
+            {/* <label>Search</label>
             <input 
             type='text'
             placeholder='Search'
             onChange={(e) => setKeyword(e.target.value)}
-            value = {keyword}/>
+            value = {keyword}/> */}
 
             {/* <button onClick={getFilteredItems(keyword)}>Search</button> */}
             {

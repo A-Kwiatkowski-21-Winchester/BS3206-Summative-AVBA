@@ -40,12 +40,14 @@ export default function CreateArticle(){
                 <h1 className="title">Create An Article</h1>
                 <label>Title</label>
                 <input type="text" 
+                placeholder='Name of Article'
                 onChange={(e) => setTitle(e.target.value)}
                 value = {title}
                 required/>
 
                 <label>Author</label>
                 <input type="text" 
+                placeholder='Author Name'
                 onChange={(e) => setAuthor(e.target.value)}
                 value = {author}
                 required/>
@@ -59,6 +61,7 @@ export default function CreateArticle(){
 
                 <label>Content</label>
                 <textarea type="text" 
+                placeholder='Main body of Article'
                 onChange={(e) => setContent(e.target.value)}
                 value = {content}
                 required/>
