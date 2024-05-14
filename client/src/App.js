@@ -11,7 +11,6 @@ function App() {
   return (
     <div>
     <Routes>
-    
       <Route path="/mentalHealth" element={<CreateArticle />}/>
       <Route path="/mentalHealthArticles" element={<ViewAllArticles />}/>
     </Routes>

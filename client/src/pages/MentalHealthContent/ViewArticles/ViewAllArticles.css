@@ -1,5 +1,6 @@
 *{
     font-family: "Poppins", sans-serif;
+    
 }
 
 .title{
@@ -18,18 +19,19 @@
     width: 25%;
     height: 25%;
     background-color: rgba(255, 255, 255, 0.979);
-    border: 1px solid rgba(186, 101, 255, 0.8);
+    border: 1px solid #015089;
     border-radius: 10px;
 }
 
 .cards {
 
-    background-color: rgb(214, 218, 247);
-    border: 1px solid rgba(186, 101, 255, 0.8);
+    background-color: #015089;
+    border: 1px solid #015089;
     padding: 20px;
     font-size: 30px;
     text-align: center;
     border-radius: 20px;
+    color: #ffffff;
 }
        
 .card {
@@ -53,10 +55,10 @@
 }
 
 .Articles .btn{
-    background-color: rgba(255, 255, 255, 0.979);
-    border: 1px solid rgba(186, 101, 255, 0.8);
-    width: 20%;
-    height: 10%;
+    background-color: #015089;
+    color: #ffffff;
+    width: 15%;
+    padding: 5px;
     font-size: 20px;
     display: block;
     margin: auto;

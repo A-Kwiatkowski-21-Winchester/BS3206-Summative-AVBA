@@ -7,6 +7,7 @@ export default function ViewAllArticles(){
     const [articles, setArticles] = useState([])
     const [showSelectedArticle, setShowSelectedArticle] = useState({})
     const [showAllArticles, setShowAllArticles] = useState(true)
+    const [keyword, setKeyword] = useState("")
 
     useEffect(() => {
         const getArticles = async () => {
@@ -29,13 +30,29 @@ export default function ViewAllArticles(){
     function returnToAllArticles(){
         window.location.reload()
     }
+
+    // function getFilteredItems(keyword){
+        
+    // }
     
+    
+
     return(
         <div>
             <h1 className="title">Mental Health Articles</h1>
+            <label>Search</label>
+            <input 
+            type='text'
+            placeholder='Search'
+            onChange={(e) => setKeyword(e.target.value)}
+            value = {keyword}/>
+
+            {/* <button onClick={getFilteredItems(keyword)}>Search</button> */}
             {
                 showAllArticles? 
-                <div className="card">       
+               
+                <div className="card">  
+                    
                     {articles.map((article) => (
                         <div className="cards">
                             <p key={article._id}>{article.title}</p>
