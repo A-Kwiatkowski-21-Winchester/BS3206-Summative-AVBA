@@ -277,7 +277,7 @@ router.put("/update-whole", async (req, res) => {
 
     // No parameter checking (too many to track), the function will return the necessary error as needed
 
-    let tokenCheck = await verifyToken(req, res);
+    let tokenCheck = await verifyToken(req, res, undefined, req.query._id);
     if (!tokenCheck.valid) return tokenCheck.error;
 
     let task = dbUserUtils.updateUserWhole(req.query);
@@ -303,7 +303,7 @@ router.put("/add-data", async (req, res) => {
     let checkError = checkReqParams(req, res, ["id", "fieldName"]);
     if (checkError) return checkError;
 
-    let tokenCheck = await verifyToken(req, res);
+    let tokenCheck = await verifyToken(req, res, undefined, req.query.id);
     if (!tokenCheck.valid) return tokenCheck.error;
 
     let task = dbUserUtils.addUserData(
@@ -340,13 +340,13 @@ router.put("/add-data", async (req, res) => {
 router.get("/get-data", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/get-data`);
 
-    let checkError = checkReqParams(req, res, ["id", "fieldNames"]);
+    let checkError = checkReqParams(req, res, ["iden", "fieldNames"]);
     if (checkError) return checkError;
 
-    let tokenCheck = await verifyToken(req, res);
+    let tokenCheck = await verifyToken(req, res, undefined, req.query.id);
     if (!tokenCheck.valid) return tokenCheck.error;
 
-    let task = dbUserUtils.getUserData(req.query.id, req.query.fieldNames);
+    let task = dbUserUtils.getUserData(req.query.iden, req.query.fieldNames);
     try {
         let taskResult = await task;
         return statusReturnJSON(res, 200, taskResult);
@@ -369,7 +369,7 @@ router.delete("/remove-data", async (req, res) => {
     let checkError = checkReqParams(req, res, ["id", "fieldName"]);
     if (checkError) return checkError;
 
-    let tokenCheck = await verifyToken(req, res);
+    let tokenCheck = await verifyToken(req, res, undefined, req.query.id);
     if (!tokenCheck.valid) return tokenCheck.error;
 
     let task = dbUserUtils.removeUserData(req.query.id, req.query.fieldName);
@@ -399,7 +399,7 @@ router.delete("/destroy", async (req, res) => {
     let checkError = checkReqParams(req, res, ["id"]);
     if (checkError) return checkError;
 
-    let tokenCheck = await verifyToken(req, res);
+    let tokenCheck = await verifyToken(req, res, undefined, req.query.id);
     if (!tokenCheck.valid) return tokenCheck.error;
 
     let task = dbUserUtils.destroyUser(req.query.id);
@@ -425,7 +425,7 @@ router.get("/password/check", async (req, res) => {
     let checkError = checkReqParams(req, res, ["id", "password"]);
     if (checkError) return checkError;
 
-    let tokenCheck = await verifyToken(req, res);
+    let tokenCheck = await verifyToken(req, res, undefined, req.query.id);
     if (!tokenCheck.valid) return tokenCheck.error;
 
     let task = dbUserUtils.checkPassword(req.query.id, req.query.password);
@@ -452,7 +452,7 @@ router.put("/password/change", async (req, res) => {
     let checkError = checkReqParams(req, res, ["id", "newPassword"]);
     if (checkError) return checkError;
 
-    let tokenCheck = await verifyToken(req, res);
+    let tokenCheck = await verifyToken(req, res, undefined, req.query.id);
     if (!tokenCheck.valid) return tokenCheck.error;
 
     let task = dbUserUtils.changePassword(req.query.id, req.query.newPassword);
