@@ -165,7 +165,7 @@ async function verifyToken(req, res, token = undefined, userID = undefined) {
             };
         let belongsToAdmin;
         if (
-            taskResult != userID ||
+            taskResult != userID &&
             !(belongsToAdmin = await isAdmin(taskResult))
         )
             return {
@@ -206,7 +206,7 @@ async function isAdmin(id) {
     let getTask = dbUserUtils.getUserData(id, "isAdmin");
     try {
         let taskResult = await getTask;
-        if (!taskResult) return false;
+        if (!taskResult.isAdmin) return false;
         return true;
     } catch (error) {
         console.error(error);
@@ -257,6 +257,7 @@ router.get("/get-whole", async (req, res) => {
                 "Could not find user with " +
                     `${req.query.idenForm || "id"} '${req.query.iden}'`
             );
+        delete taskResult.password
         return statusReturnJSON(res, 200, taskResult);
     } catch (error) {
         console.error(error);
