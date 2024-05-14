@@ -15,6 +15,11 @@
   the user being manipulated, <b>or</b> a token of an admin-level user.
 </p>
 <p><code>user_id</code> - Contains the user ID linked to the session token.</p>
+<p>
+  If the token is invalid or expired, the API will automatically respond with
+  <code class="subtle">401: Unauthorized</code>. If the user ID does not match the token record, or
+  is not of admin-level, the API will respond with <code class="subtle">403: Forbidden</code>.
+</p>
 
 <h3 id="required-fields">Required fields:</h3>
 <p>
@@ -34,13 +39,13 @@
   <code class="subtle">1 = FEMALE</code>, and <code class="subtle">2 = OTHER</code>.
 </p>
 <p><code>email</code> - Email address.</p>
-<p>
+<p id="required-fields--password">
   <code>password</code> - The password for the account. This should not be sent as plaintext, but
   SHA-256 hashed. Whenever using functions like
   <code class="plain"><a href="#password--check">/password/check</a></code> or
-  <code class="plain"><a href="#session--create">/session/create</a></code
-  >, ensure you use the hashed version of the password also. An example of how to hash a string in
-  JavaScript would be the following:
+  <code class="plain"><a href="#session--create">/session/create</a></code> , ensure you use the
+  hashed version of the password also. An example of how to hash a string in JavaScript would be the
+  following:
 </p>
 
 <pre><code>const crypto = require("crypto");
@@ -53,8 +58,260 @@ let hashtext = crypto.createHash("sha-256").update(plaintext).digest("hex");
   <code>isAdmin</code> - A boolean (<code class="subtle">true</code> or
   <code class="subtle">false</code>), determining if the user is an administrator or not.
 </p>
+<h4>Submitting objects</h4>
+<p>
+  Any API endpoint that takes an object (e.g. a user object with all required fields) or an array
+  will accept it in the same way as other APIs in this list - via query string. For that reason,
+  objects must be converted to query strings when the API is queried.
+</p>
+<p>
+  The order of the fields in the string typically does not matter, only that they are present. The
+  only time this is not the case is if you are submitting an array of values where the order is
+  important (for instance, <code class="subtle">height=175&height=180</code>).
+</p>
+<p>
+  This process should also convert any special characters (like <code class="subtle">@</code>) to
+  their URL-encoded variants (<code class="subtle">%40</code>).
+</p>
+<details>
+  <summary>Example of conversion to querystring</summary>
+  <pre><code>const querystring = require("querystring");
+
+const obj = {
+    name: "Mark",
+    funnyData: ["hardy", "har"],                <span class="comment">//arrays are correctly handled ✔️ </span>
+    dog: { name: "Marcy", breed: "Labrador" },  <span class="comment">//embedded objects do NOT work (collapsed to empty string) ❌ </span>
+    signupDate: new Date().toISOString(),       <span class="comment">//dates have to be converted to an ISO string 🟡 </span>
+};
+    
+let result = querystring.stringify(obj);
+console.log(result);
+<span class="comment">// name=Mark&funnyData=hardy&funnyData=har&dog=&signupDate=2024-05-13T23%3A43%3A03.694Z</span>
+</code></pre>
+</details>
 
 <h2>User functions</h2>
-<h3 id="create"><code>/create</code> - Creation of a new user</h3>
+<h3 id="create"><code>/create</code> - Create of a new user</h3>
+<p>This is a <code class="subtle">POST</code> method.</p>
 <h4>Parameters:</h4>
-<p>(All values from <a href="#required-fields">required fields</a>)</p>
+<p>All values from <a href="#required-fields">required fields</a>, plus any additional values.</p>
+<h4>Return values:</h4>
+<p>
+  <code class="subtle">200: OK</code> - JSON data, where <code class="subtle">id</code> is the ID of
+  the newly created user.
+</p>
+<h4>Examples:</h4>
+<details>
+  <summary>Creating a new user</summary>
+  <pre><code>http://localhost:8080/api/users/create?title=mr&firstName=Mark&lastName=Finch&dob=2000-12-15&sex=0&email=mark%40em.co&phone=077584475523&isAdmin=false&password=b662ae3abc798cf627f31727cf1ea4e0a709f531b49cdfa8a07ac473e2cc91ba</code></pre>
+</details>
+
+<h3 id="get-whole"><code>/get-whole</code> - Get a whole user</h3>
+<p>This is a <code class="subtle">GET</code> method.</p>
+<h4>Parameters:</h4>
+<p><code>iden</code> - The identifier for the user, typically their ID.</p>
+<p>
+  <code>idenForm</code> - <i>(optional - default <code class="subtle">id</code>)</i> The form of the
+  identifier. Valid values are: <code class="subtle">id</code>, <code class="subtle">email</code>.
+  ID is the preferred and default option, since it is guaranteed to be unique per user.
+</p>
+<h4>Return values:</h4>
+<p><code class="subtle">200: OK</code> - JSON data containing the entire user.</p>
+<p><code class="subtle">404: NOT FOUND</code> - The identifier did not match any users.</p>
+<h4>Examples:</h4>
+<details>
+  <summary>Getting a whole user</summary>
+  <pre><code>http://localhost:8080/api/users/get-whole?iden=5356772</code></pre>
+</details>
+<details>
+  <summary>Getting a whole user via email</summary>
+  <pre><code>http://localhost:8080/api/users/get-whole?iden=mark%40em.co&idenForm=email</code></pre>
+</details>
+
+<h3 id="update-whole"><code>/update-whole</code> - Update/replace a whole user</h3>
+<p>This is a <code class="subtle">PUT</code> method.</p>
+<p class="warn">
+  This method is <b>not recommended</b>, as it is a brute-force method of replacing an entire user
+  object in the database. For changing data, use the data methods below.
+</p>
+<p class="note">
+  When this method is used, any password data in the query will <b>not</b> be accepted, and instead
+  the existing password data for that account will remain.
+</p>
+<h4>Parameters:</h4>
+<p>
+  All values from <a href="#required-fields">required fields</a>, including
+  <code class="subtle">_id</code>, plus any additional values.
+</p>
+<h4>Return values:</h4>
+<p><code class="subtle">200: OK</code> - Message: <code class="subtle">"User updated"</code></p>
+<p>
+  <code class="subtle">404: NOT FOUND</code> - The <code class="subtle">_id</code> did not match any
+  users.
+</p>
+<h4>Examples:</h4>
+<details>
+  <summary>Updating an existing user wholly</summary>
+  <pre><code>http://localhost:8080/api/users/update-whole?_id=5356772&title=mr&firstName=Markus&lastName=Finchley&dob=2000-12-15&sex=0&email=marko%40em.co&password=doesntmatter&phone=077584475523&isAdmin=false</code></pre>
+</details>
+
+<h3 id="add-data"><code>/add-data</code> - Add data to a user</h3>
+<p>This is a <code class="subtle">PUT</code> method.</p>
+<h4>Parameters:</h4>
+<p><code>id</code> - The ID for the user.</p>
+<p>
+  <code>fieldName</code> - The field name to insert data into, such as
+  <code class="subtle">fees</code>.
+</p>
+<p>
+  <code>data</code> - The data to insert into the field, either as a single value or an array of
+  values.
+</p>
+<p>
+  <code>intoArray</code> - <i>(optional - default <code class="subtle">false</code>)</i> Whether the
+  field should contain an array of data (<code class="subtle">true</code>), or a single value (<code
+    class="subtle"
+    >false</code
+  >).
+</p>
+<p>
+  <code>replace</code> - <i>(optional - default <code class="subtle">true</code>)</i> Whether the
+  provided data should replace the existing data (<code class="subtle">true</code>), or instead be
+  added to the end (<code class="subtle">false</code>).
+</p>
+<p class="warn">
+  <code>intoArray</code> and <code>replace</code> cannot both be <code class="subtle">false</code>,
+  as there would be no way to append to a singular value. It must replace the singular value, or be
+  allowed to be come an array.
+</p>
+<h4>Return values:</h4>
+<p>
+  <code class="subtle">200: OK</code> - Message: <code class="subtle">"Data added/replaced"</code>
+</p>
+<p>
+  <code class="subtle">404: NOT FOUND</code> - The <code class="subtle">id</code> did not match any
+  users.
+</p>
+<h4>Examples:</h4>
+<details>
+  <summary>Adding <code class="subtle">"flavor=vanilla"</code> to a user</summary>
+  <pre><code>http://localhost:8080/api/users/add-data?id=5356772&fieldName=flavor&data=vanilla</code></pre>
+</details>
+<details>
+  <summary>Replacing flavor with <code class="subtle">"chocolate"</code></summary>
+  <pre><code>http://localhost:8080/api/users/add-data?id=5356772&fieldName=flavor&data=chocolate</code></pre>
+  or
+  <pre><code>http://localhost:8080/api/users/add-data?id=5356772&fieldName=flavor&data=chocolate&intoArray=false&replace=true</code></pre>
+</details>
+<details>
+  <summary>
+    Converting flavor into an array and adding <code class="subtle">"strawberry"</code>
+  </summary>
+  <pre><code>http://localhost:8080/api/users/add-data?id=5356772&fieldName=flavor&data=strawberry&intoArray=true&replace=false</code></pre>
+</details>
+
+<h3 id="get-data"><code>/get-data</code> - Get a piece of data from a user</h3>
+<p>This is a <code class="subtle">GET</code> method.</p>
+<h4>Parameters:</h4>
+<p><code>iden</code> - The identifier for the user, typically their ID.</p>
+<p>
+  <code>fieldNames</code> - A single string, or an array of strings, containing the name of the
+  field(s) you want to retrieve the data from.
+</p>
+<p>
+  <code>idenForm</code> - <i>(optional - default <code class="subtle">id</code>)</i> The form of the
+  identifier. Valid values are: <code class="subtle">id</code>, <code class="subtle">email</code>.
+  ID is the preferred and default option, since it is guaranteed to be unique per user.
+</p>
+<h4>Return values:</h4>
+<p>
+  <code class="subtle">200: OK</code> - JSON data containing the data from the requested fields.<br />
+  If the return value is <code class="subtle">{}</code> (null), the field requested does not exist,
+  or the provided identifier did not match any users.
+</p>
+<p>
+  <code class="subtle">418: I'M A TEAPOT</code> (wrong method for this action) - Attempting to get
+  the password field will result in this error. The password is encrypted and will be of no use
+  requested in this way. <br />
+  To check password validity, use
+  <code class="plain"><a href="#password--check">/password/check</a></code> .
+</p>
+<h4>Examples:</h4>
+<details>
+  <summary>Getting the value of field <code class="subtle">flavor</code></summary>
+  <pre><code>http://localhost:8080/api/users/get-data?iden=5356772&fieldName=flavor</code></pre>
+</details>
+<details>
+  <summary>
+    Getting the value of fields <code class="subtle">dog</code> and <code class="subtle">cat</code>
+  </summary>
+  <pre><code>http://localhost:8080/api/users/get-data?iden=marko%40em.co&idenForm=email&fieldName=dog&fieldName=cat</code></pre>
+</details>
+
+<h3 id="remove-data">
+  <code>/remove-data</code> - Remove a data field (along with the data) from a user
+</h3>
+<p>This is a <code class="subtle">DELETE</code> method.</p>
+<h4>Parameters:</h4>
+<p><code>id</code> - The ID for the user.</p>
+<p><code>fieldName</code> - The field name to remove.</p>
+<h4>Return values:</h4>
+<p>
+  <code class="subtle">200: OK</code> - Message:
+  <code class="subtle">"Field [field] removed from user [ID]"</code>
+</p>
+<p>
+  <code class="subtle">404: NOT FOUND</code> - The <code class="subtle">id</code> did not match any
+  users, or the <code class="subtle">fieldName</code> did not exist on the user.
+</p>
+<h4>Examples:</h4>
+<details>
+  <summary>Removing the field <code class="subtle">flavor</code> from a user</summary>
+  <pre><code>http://localhost:8080/api/users/remove-data?id=5356772&fieldName=flavor</code></pre>
+</details>
+
+<h3 id="destroy"><code>/destroy</code> - Destroy a user record</h3>
+<p class="warn">
+  <b>This action is irreversible</b> - it should only be called if a user wishes to delete their
+  account permanently.
+</p>
+<h4>Parameters:</h4>
+<p><code>id</code> - The ID for the user.</p>
+<h4>Return values:</h4>
+<p><code class="subtle">200: OK</code> - Message: <code class="subtle">"User destroyed"</code></p>
+<p>
+  <code class="subtle">404: NOT FOUND</code> - The <code class="subtle">id</code> did not match any
+  users.
+</p>
+<h4>Examples:</h4>
+<details>
+  <summary>Destroying user with ID <code class="subtle">5356772</code></summary>
+  <pre><code>http://localhost:8080/api/users/destroy?id=5356772</code></pre>
+</details>
+
+<h2>Password functions</h2>
+<h3 id="password--check"><code>/password/check</code> - Check a user's password</h3>
+<h4>Parameters:</h4>
+<p><code>id</code> - The ID for the user.</p>
+<p>
+  <code>password</code> - The password to check against the user's record. Should be
+  <a href="#required-fields--password">SHA-256 hashed</a>
+  before being put into the query.
+</p>
+<h4>Return values:</h4>
+<p><code class="subtle">200: OK</code> - Message: <code class="subtle">"User destroyed"</code></p>
+<p>
+  <code class="subtle">403: FORBIDDEN</code> - The submitted
+  <code class="subtle">password</code> did not match the one assigned to the user account.
+</p>
+<p>
+  <code class="subtle">404: NOT FOUND</code> - The <code class="subtle">id</code> did not match any
+  users.
+</p>
+<h4>Examples:</h4>
+<details>
+  <summary>Testing password for user <code class="subtle">5356772</code></summary>
+  <pre><code>http://localhost:8080/api/users/password/check?id=5356772&password=b662ae3abc798cf627f31727cf1ea4e0a709f531b49cdfa8a07ac473e2cc91ba</code></pre>
+</details>
+
+<br /><br /><br />

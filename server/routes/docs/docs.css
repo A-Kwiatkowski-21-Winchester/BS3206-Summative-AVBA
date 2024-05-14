@@ -2,6 +2,7 @@ body {
   background-color: #333;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   color: #eee;
+  padding: 10px;
 }
 
 code {
@@ -9,9 +10,9 @@ code {
   border: 1px solid;
   border-radius: 5px;
   padding-inline: 5px;
-  background-color: #222;
+  background-color: #22222280;
   color: #eee;
-  font-size: 1em
+  font-size: 1em;
 }
 .plain {
   border: 0px;
@@ -19,15 +20,15 @@ code {
   padding-inline: 1px;
 }
 .subtle {
-    border: 0px;
-    background-color: #282828;
-    padding-inline: 3px;
-    color: #cecece;
-  }
+  border: 0px;
+  padding-inline: 3px;
+  color: #cecece;
+}
 
 pre code {
   display: block;
   padding: 10px;
+  overflow-x: auto;
 }
 
 h1,
@@ -37,7 +38,9 @@ h4,
 h5,
 h6 {
   color: #fed;
+  margin-bottom: -5px;
 }
+
 .auth::after {
   content: "⍣" / "requires authorization";
   padding-left: 5px;
@@ -52,12 +55,13 @@ h6 {
 h2 {
   border-top: 3px solid #666;
   padding-top: 6px;
-  margin-top: 30px;
+  margin-top: 48px;
 }
 
 h3 {
   border-top: 2px solid #444;
   padding-top: 6px;
+  margin-top: 32px;
 }
 
 a {
@@ -65,7 +69,59 @@ a {
   background-color: transparent;
   text-decoration: underline;
 }
-
 a:hover {
   color: darkorange;
+}
+
+p {
+  line-height: 1.5;
+}
+.warn {
+  color: rgb(255, 220, 155);
+  padding: 5;
+  border: 1px solid orange;
+  border-radius: 3px;
+  background-color: rgba(255, 165, 0, 0.1);
+}
+.note {
+  color: rgb(190, 226, 255);
+  padding: 5;
+  border: 1px solid rgb(0, 195, 255);
+  border-radius: 3px;
+  background-color: rgba(0, 183, 255, 0.1);
+}
+
+details {
+  background-color: #3b3b3b;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  padding: 0.5em 1em 0;
+  margin-top: 10px;
+}
+summary {
+  margin: -0.5em -0.5em 0;
+  padding: 0.25em;
+  cursor: pointer;
+}
+summary::after {
+  content: "(click to reveal)";
+  font-size: 11px;
+  font-style: italic;
+  color: #aaa;
+  padding-left: 10;
+}
+details[open] summary {
+  border-bottom: 1px solid #666;
+  margin-bottom: 0.5em;
+}
+details[open] summary::after {
+  content: "(click to hide)";
+}
+
+.comment {
+  color: #b5cea8;
+}
+.comment .forceColor {
+  color: transparent;
+  text-shadow: 0 0 0 #b5cea8;
 }
