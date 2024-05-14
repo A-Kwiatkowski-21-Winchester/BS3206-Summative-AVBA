@@ -603,7 +603,13 @@ categoryURLs["/session"] = ["/create", "/check", "/expire"];
 router.get("/", async (req, res) => {
     console.log(`Reached ${req.baseUrl}/ (root)`);
     return res.status(300).sendFile(path.join(__dirname, "/docs/user.html"));
+    //TODO: Differentiate between HTML-capable requests and other (convert to plaintext)
     //Create base code
+});
+
+router.get("/docs.css", function (req, res) {
+    console.log("Sending CSS");
+    res.sendFile(path.join(__dirname + "/docs/docs.css"));
 });
 
 // Default route
@@ -616,7 +622,7 @@ router.get("/*", async (req, res) => {
         res,
         404,
         "Page not found",
-        "See /api/users for possible paths"
+        "See /api/users for documentation"
     );
 });
 
