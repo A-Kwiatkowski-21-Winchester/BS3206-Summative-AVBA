@@ -1,3 +1,6 @@
+*{
+    font-family: "Poppins", sans-serif;
+}
 .container{
     display: block;
     position: absolute;
@@ -5,11 +8,14 @@
     margin: 10%;
     border: 2px solid red;
 }
-
+.title{
+    text-align: center;
+}
 .cards {
 
-    background-color: rgb(214, 218, 247);
-    border: 1px solid rgba(186, 101, 255, 0.8);
+    background-color: #015089;
+    border: 1px solid #FFFFFF;
+    color: #FFFFFF;
     padding: 30px;
     font-size: 20px;
     text-align: left;
@@ -30,7 +36,7 @@
     width: 25%;
     height: 15%;
     background-color: rgba(255, 255, 255, 0.979);
-    border: 1px solid rgba(186, 101, 255, 0.8);
+    border: 1px solid #FFFFFF;
     border-radius: 10px;
     margin-top: 10px;
 }

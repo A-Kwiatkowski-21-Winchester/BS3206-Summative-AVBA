@@ -43,18 +43,21 @@ export default function BookAppointments(){
                 <h1 className="title">Book a GP Appointment</h1>
                 <label>Patient Name</label>
                 <input type="text" 
+                placeholder='Name of Patient'
                 onChange={(e) => setPatientName(e.target.value)}
                 value = {patientName}
                 required/>
 
                 <label>Health Number</label>
                 <input type="Integer" 
+                placeholder='Health Number'
                 onChange={(e) => setHealthNumber(e.target.value)}
                 value = {healthNumber}
                 required/>
 
                 <label>Doctor Name</label>
                 <input type="text"
+                placeholder='Name of Doctor'
                 onChange={(e) => setDoctorName(e.target.value)}
                 value = {doctorName}
                 required/>

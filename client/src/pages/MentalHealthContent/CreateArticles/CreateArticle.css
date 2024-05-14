@@ -2,30 +2,30 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: "Poppins", sans-serif;
-
+    
+    
 }
+
 
 .title{
-    margin: 30px;
     text-align: center;
 }
-.book{
-    padding: 2vw;
+.article{
+    
     display: flex;
     justify-content: center;
 }
-.bookingform{
+.articleform{
     width: 50%;
 }
-.book label{
+.article label{
     display: block;
     text-align: left;
     font-size: 20px;
     margin: 0 0 0 0;
 }
 
-.book input{
+.article input{
     display: block;
     width: 100%;
     padding: 10px;
@@ -34,23 +34,36 @@
     border-radius: 5px;
     font-size: 20px;
     background-color: rgb(214, 218, 247);
-    border-color: red;
 }
 
-.book .btn{
+.article textarea{
+    display: block;
+    width: 100%;
+    height: 30vh;
+    padding: 10px;
+    margin: 15px 0 ;
+    border:0;
+    border-radius: 5px;
+    font-size: 20px;
+    background-color: rgb(214, 218, 247);
+}
+
+
+
+.article .btn{
     
     background-color: #015089;
     border: 1px solid #FFFFFF;
     color: #FFFFFF;
     border-radius: 10px;
-    width: 35%;
+    width: 25%;
     height: 8%;
     font-size: 20px;
     display: block;
     margin: auto;
     margin-top: 30px;
 }
-.book .btn:hover{
+.article .btn:hover{
     background-color: rgba(255, 255, 255, 0.979);
     background-color: rgb(199, 204, 243);
 }

@@ -39,7 +39,7 @@ export default function ViewAppointments(){
 
     return(
         <div>
-            <h1>My Appointments</h1>
+            <h1 className="title">My Appointments</h1>
             <div className="card">
                 {appointments.map((appointment) => (
                     <div className="cards">
