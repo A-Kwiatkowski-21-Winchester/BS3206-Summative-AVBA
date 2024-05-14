@@ -1,4 +1,3 @@
-
 import './ViewAllArticles.css'
 import {useEffect, useState} from 'react'
 
@@ -7,8 +6,8 @@ export default function ViewAllArticles(){
     const [articles, setArticles] = useState([])
     const [showSelectedArticle, setShowSelectedArticle] = useState({})
     const [showAllArticles, setShowAllArticles] = useState(true)
-    const [keyword, setKeyword] = useState("")
-
+    const [query, setQuery] = useState("")
+    
     useEffect(() => {
         const getArticles = async () => {
             const response = await fetch('http://localhost:8080/api/mentalhealth')
@@ -23,7 +22,6 @@ export default function ViewAllArticles(){
 
      function ViewArticle(title, author, date, content){
         setShowAllArticles(false)
-
         setShowSelectedArticle({title, author, date, content})
     }
 
@@ -31,29 +29,30 @@ export default function ViewAllArticles(){
         window.location.reload()
     }
 
-    // function getFilteredItems(keyword){
-        
-    // }
-    
-    
+    const filteredArticles =  articles.filter(article => {
+        return article.title.toLowerCase().includes(query.toLowerCase()) || article.author.toLowerCase().includes(query.toLowerCase())
+    })
 
+  
+    
     return(
         <div>
             <h1 className="title">Mental Health Articles</h1>
-            {/* <label>Search</label>
-            <input 
-            type='text'
-            placeholder='Search'
-            onChange={(e) => setKeyword(e.target.value)}
-            value = {keyword}/> */}
+            <div className='searchbar'>
+                <input 
+                type='search'
+                placeholder='Search'
+                value={query}
+                onChange={e => setQuery(e.target.value)}/>
+            </div>
 
-            {/* <button onClick={getFilteredItems(keyword)}>Search</button> */}
+           
             {
                 showAllArticles? 
                
                 <div className="card">  
                     
-                    {articles.map((article) => (
+                    {filteredArticles.map((article) => (
                         <div className="cards">
                             <p key={article._id}>{article.title}</p>
                             <p key={article.author}>By {article.author}</p>

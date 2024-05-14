@@ -14,7 +14,18 @@
     margin: 10%;
     border: 2px solid red;
 }
-
+.searchbar{
+    display: flex;
+    justify-content: center;
+    
+}
+.searchbar input{
+    padding: 10px;
+    width: 20%;
+    margin-top: 20px;
+    border-radius: 10px;
+    border: 2px solid black;
+}
 .btn{
     width: 25%;
     height: 25%;
