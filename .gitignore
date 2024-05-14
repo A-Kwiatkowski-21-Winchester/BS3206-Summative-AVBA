@@ -1,1 +1,5 @@
 _*
+
+# local
+/.vscode/*.code-workspace
+/.vscode/settings.json
