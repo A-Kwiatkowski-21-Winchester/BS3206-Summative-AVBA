@@ -1,28 +1,36 @@
-require('dotenv').config();
-const cors = require('cors');
-const dbUtil = require('./libs/dbUserUtils')
-const express = require('express');
+require("dotenv").config();
+const cors = require("cors");
+const dbUtil = require('./libs/dbUserUtils')const express = require("express");
+const cookieParser = require('cookie-parser')
 
-PORT = process.env.PORT || 4000;
+const userRoutes = require("./routes/users");
+
+const PORT = process.env.PORT || 4000;
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
+
+app.use(function (req, res, next) {
+  console.log("Incoming request for:", req.path)
+  //console.log(req.cookies)
+  next()
+})
+
+//routes
+app.use('/api/users', userRoutes);
+
+// Default route
+app.use('/', function(req, res) {
+  res.status(404).send("Page not found (invalid URL)")
+});
+
+//PREVIOUS CODE FROM BENJAMIN
+/*
+app.use(express.json());
 app.use(express.urlencoded())
-
-
-let env;
-try {
-    env = require('./env/environment');
-} catch {
-    console.error("Unable to load './env/environment.js'. Have you filled out the template and renamed it?");
-}
-
-
-let dbExample = require('./examples/dbconnect-exampleuse');
-dbExample.exampleRun();
-
 
 app.get('/', async (req, res) => {
     // res.send('Hello universe!');
@@ -59,7 +67,8 @@ app.post('/signup', (req,res) => {
     isAdmin:false,});
     
 })
+*/
 
 app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+  console.log(`Server listening on port ${PORT}`);
 });

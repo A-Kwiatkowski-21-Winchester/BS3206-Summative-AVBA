@@ -1,0 +1,13 @@
+{
+    "recommendations": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "sidthesloth.html5-boilerplate",
+        "ecmel.vscode-html-css",
+        "yzhang.markdown-all-in-one",
+        "ms-vscode.live-server",
+        "christian-kohler.npm-intellisense",
+        "xabikos.javascriptsnippets",
+        "zignd.html-css-class-completion"
+    ]
+}

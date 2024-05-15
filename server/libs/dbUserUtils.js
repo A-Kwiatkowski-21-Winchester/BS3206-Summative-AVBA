@@ -13,6 +13,15 @@ const userTokenCollection = "UserTokens";
 const idPrefix = "AH-";
 const idRegex = /[_]?id/i;
 
+// Custom Error
+class RequestError extends Error {
+    constructor(message, statusCode = 400) {
+        super(message);
+        this.name = "RequestError";
+        this.statusCode = statusCode;
+    }
+}
+
 //#region Internal tools
 
 /** Generates and opens a dbconnect client. */
@@ -67,7 +76,7 @@ function securePassword(password, superuser = false, cipherAsString = true) {
  * @returns {Promise<string|null>} The password as a string (though not as plaintext).
  */
 async function getPassword(id) {
-    if (isEmpty(id)) throw Error("No ID provided to get user with.");
+    if (isEmpty(id)) throw new RequestError("No ID provided to get user with.");
     prepClient();
     let getPromise = getCollection(userDataCollection).findOne(
         { _id: id },
@@ -81,8 +90,9 @@ async function getPassword(id) {
     getPromise.finally(() => dbconnect.closeClient());
     let promiseResult = await getPromise;
     if (!promiseResult)
-        throw Error(
-            `User with ID '${id}' does not exist. Could not get password.`
+        throw new RequestError(
+            `User with ID '${id}' does not exist. Could not get password.`,
+            404
         );
     return promiseResult.password;
 }
@@ -96,7 +106,7 @@ const requiredFields = {
     firstName: ["string"],
     lastName: ["string"],
     dob: ["object", "uses Date object"],
-    sex: ["number", "uses dbUserUtils.sex enum"],
+    sex: ["int", "uses dbUserUtils.sex enum"],
     email: ["string"],
     password: ["string", "should be pre-hashed using SHA-256"],
     phone: ["string"],
@@ -107,29 +117,56 @@ const requiredFields = {
  * Checks a UserObject's fields to ensure it:
  * - Has all the required fields, and
  * - Fields like `sex` and `dob` follow the correct format
- * @param {object} userObject
+ * @param {object} userObject The user object to check the fields for
+ * @param {string[]} ignoredFields Any fields to ignore in the checks
  */
-function checkUserReqFields(userObject) {
+function checkUserReqFields(userObject, ignoredFields=[]) {
     for (const field of Object.keys(requiredFields)) {
+        if(ignoredFields.includes(field)) continue;
+        let fieldValue = userObject[field];
         // If field does not exist
-        if (isEmpty(userObject[field]))
-            throw Error(`Field '${field}' is required but was not found.`);
+        if (isEmpty(fieldValue))
+            throw new RequestError(
+                `Field '${field}' is required but was not found.`
+            );
 
         // If field does not match required type
         if (typeof userObject[field] != requiredFields[field][0]) {
             let errorStr =
                 `Field '${field}' was not of required type '${requiredFields[field][0]}'` +
                 ` (was instead '${typeof userObject[field]}').`;
-            if (field == "sex")
-                errorStr += ` For field '${field}', use the dbUserUtils.sex enum.`;
-            if (field == "dob")
-                errorStr += ` For field '${field}', use the Date class.`;
-            throw Error(errorStr);
+            if (field == "sex") {
+                if (isNaN((userObject["sex"] = parseInt(fieldValue))))
+                    errorStr +=
+                        ` For field '${field}', use the sex enum ` +
+                        `(${JSON.stringify(sex)}).`;
+                else errorStr = undefined; // Cancel error
+            }
+            if (field == "dob") {
+                try {
+                    userObject["dob"] = new Date(Date.parse(fieldValue));
+                    errorStr = undefined; // Cancel error
+                } catch {
+                    errorStr += ` For field '${field}', use the Date class.`;
+                }
+            }
+            if (requiredFields[field][0] == "boolean") {
+                try {
+                    userObject[field] = JSON.parse(fieldValue);
+                    errorStr = undefined;
+                } catch {
+                    errorStr += ` For field '${field}', use "true" or "false".`;
+                }
+            }
+            if (!isEmpty(errorStr)) throw new RequestError(errorStr);
         }
     }
 
     if (!isValidDate(userObject["dob"]))
-        throw Error(`Date for 'dob' is invalid.`);
+        throw new RequestError("Date for 'dob' is invalid.");
+
+    if (!(userObject["sex"] in Object.values(sex)))
+        throw new RequestError(`'sex' is not one of: ${JSON.stringify(sex)}`);
 }
 
 //#endregion
@@ -167,12 +204,12 @@ function listRequiredFields() {
  * @returns {number} The ID of the newly created user.
  * @throws Various `Error`s when fields are missing or invalid.
  */
-function createUser(userObject) {
+async function createUser(userObject) {
     // If "(_)id" key is anywhere in the userObject
     if (Object.keys(userObject).find((key) => key.match(idRegex)))
-        throw Error(
+        throw new RequestError(
             "ID should not be included in new user data; it is generated automatically. " +
-                "If this is an existing user, use updateUserWhole()."
+                'If this is an existing user, use the "update user whole" function.'
         );
 
     checkUserReqFields(userObject);
@@ -195,6 +232,9 @@ function createUser(userObject) {
     let insertPromise = getCollection(userDataCollection).insertOne(userObject);
     insertPromise.finally(() => dbconnect.closeClient());
     insertPromise.then(() => console.log("Insertion complete."));
+    let promiseResult = await insertPromise;
+    if (!promiseResult) throw new RequestError("Unable to create user", 500);
+    return promiseResult.insertedId;
 }
 
 /**
@@ -204,10 +244,12 @@ function createUser(userObject) {
  * @returns A Promise which will resolve to a userObject document.
  */
 async function getUserWhole(identifier, identifierForm = "_id") {
-    if (isEmpty(identifier)) throw Error("No ID provided to get user with.");
+    if (isEmpty(identifier))
+        throw new RequestError("No ID provided to get user with.");
+    if (identifierForm.match(idRegex)) identifierForm = "_id";
     let validIDForms = ["_id", "email"];
     if (!validIDForms.includes(identifierForm))
-        throw Error(
+        throw new RequestError(
             `Invalid identifier form (should be one of: ${validIDForms})`
         );
     prepClient();
@@ -218,32 +260,42 @@ async function getUserWhole(identifier, identifierForm = "_id") {
 }
 
 /**
- * **Not Recommended**  
- * Updates an entire user, replacing the database copy with the one provided.  
+ * **Not Recommended**
+ * Updates an entire user, replacing the database copy with the one provided.
  * The `password` property will not replaced and the database value will remain - use {@linkcode changePassword()} to change passwords.
  * @param {object} userObject The userObject to replace the user with in the database. Must contain required fields.
  */
 async function updateUserWhole(userObject) {
     if (isEmpty(userObject["_id"]))
-        throw Error(
+        throw new RequestError(
             "No '_id' found in userObject; one should be included to update user. " +
-                "If this is a new user, use createUser() ."
+                'If this is a new user, use the "create user" function.'
         );
-    checkUserReqFields(userObject);
+    checkUserReqFields(userObject, ["password"]);
 
-    let userPassword = await getPassword(userObject._id);
-    userObject.password = userPassword; // Replaces any manually set password with one from the database.
+    try {
+        let userPassword = await getPassword(userObject._id);
+        userObject.password = userPassword; // Replaces any manually set password with one from the database.
+    } catch (error) {
+        if (error.statusCode == 404)
+            throw new RequestError(
+                `User with ID '${userObject._id}' does not exist. Could not update.`,
+                404
+            );
+        else throw error
+    }
 
     prepClient();
     let updatePromise = getCollection(userDataCollection).findOneAndReplace(
-        { _id: userObject.id },
+        { _id: userObject._id },
         userObject
     );
     updatePromise.finally(() => dbconnect.closeClient());
     let promiseResult = await updatePromise;
     if (!promiseResult)
-        throw Error(
-            `User with ID '${userObject.id}' does not exist. Could not update.`
+        throw new RequestError(
+            `User with ID '${userObject._id}' does not exist. Could not update.`,
+            404
         );
 }
 
@@ -267,23 +319,26 @@ async function addUserData(
     intoArray = false,
     replace = true
 ) {
-    if (isEmpty(id)) throw Error("ID is required but was not provided.");
+    if (isEmpty(id))
+        throw new RequestError("ID is required but was not provided.");
     if (isEmpty(fieldName))
-        throw Error("fieldName is required but was not provided.");
+        throw new RequestError("fieldName is required but was not provided.");
     if (isEmpty(data))
-        throw Error(
-            "Data is required but was not provided. To remove data, use removeUserData()"
+        throw new RequestError(
+            'Data is required but was not provided. To remove data, use the "remove user data" function'
         );
     if (!intoArray && !replace)
-        throw Error(
+        throw new RequestError(
             "Parameters intoArray and replace cannot both be false simultaneously " +
                 "(no way to not replace a singular value)."
         );
-    if (fieldName.match(idRegex)) throw Error("Field 'ID' cannot be changed.");
+    if (fieldName.match(idRegex))
+        throw new RequestError("Field 'ID' cannot be changed.");
     if (isSemEqual(fieldName, "password"))
-        throw Error(
+        throw new RequestError(
             "Field 'password' cannot be changed this way. " +
-                "Use changePassword()."
+                'Use the "change password" function',
+            418
         );
 
     let action = "$set";
@@ -321,7 +376,10 @@ async function addUserData(
     }
 
     if (!promiseResult)
-        throw Error(`User with ID '${id}' does not exist. Could not update.`);
+        throw new RequestError(
+            `User with ID '${id}' does not exist. Could not update.`,
+            404
+        );
     console.log(`Updated data in field ${fieldName} for user with id '${id}'.`);
 }
 
@@ -335,9 +393,10 @@ async function addUserData(
  * either the identifier matched no users, or the field did not exist.
  */
 async function getUserData(identifier, fieldNames, identifierForm = "_id") {
+    if (identifierForm.match(idRegex)) identifierForm = "_id";
     let validIDForms = ["_id", "email"];
     if (!validIDForms.includes(identifierForm))
-        throw Error(
+        throw new RequestError(
             `Invalid identifier form (should be one of: ${validIDForms})`
         );
     if (!Array.isArray(fieldNames)) fieldNames = [fieldNames]; // If not array, convert to array
@@ -346,9 +405,10 @@ async function getUserData(identifier, fieldNames, identifierForm = "_id") {
     };
     fieldNames.forEach((fieldName) => {
         if (isSemEqual(fieldName, "password"))
-            throw Error(
+            throw new RequestError(
                 "Field 'password' is encrypted and should not be retrieved this way. " +
-                    "To check a value against the stored password, use checkPassword()."
+                    'To check a value against the stored password, use the "check password" function.',
+                418
             );
         projectionObj[fieldName] = 1;
     });
@@ -368,11 +428,14 @@ async function getUserData(identifier, fieldNames, identifierForm = "_id") {
  * @param {string} fieldName The name of the field to remove from the user.
  */
 async function removeUserData(id, fieldName) {
-    if (isEmpty(id)) throw Error("ID is required but was not provided.");
+    if (isEmpty(id))
+        throw new RequestError("ID is required but was not provided.");
     if (isEmpty(fieldName))
-        throw Error("fieldName is required but was not provided.");
+        throw new RequestError("fieldName is required but was not provided.");
     if (fieldName.match(idRegex) || fieldName in requiredFields)
-        throw Error(`Field '${fieldName}' is required and cannot be removed.`);
+        throw new RequestError(
+            `Field '${fieldName}' is required and cannot be removed.`
+        );
 
     prepClient();
     let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
@@ -384,7 +447,15 @@ async function removeUserData(id, fieldName) {
     let promiseResult = await updatePromise;
 
     if (!promiseResult)
-        throw Error(`User with ID '${id}' does not exist. Could not update.`);
+        throw new RequestError(
+            `User with ID '${id}' does not exist. Could not update.`,
+            404
+        );
+    if (isEmpty(promiseResult[fieldName]))
+        throw new RequestError(
+            `No field found with name '${fieldName}' on user ${id}. Could not remove.`,
+            404
+        );
     console.log(`Removed data in field ${fieldName} for user with id '${id}'.`);
 }
 
@@ -393,6 +464,8 @@ async function removeUserData(id, fieldName) {
  * @param {string} id The ID of the user to destroy.
  */
 async function destroyUser(id) {
+    if (isEmpty(id))
+        throw new RequestError("ID is required but was not provided.");
     prepClient();
     let destroyPromise = getCollection(userDataCollection).findOneAndDelete({
         _id: id,
@@ -400,7 +473,10 @@ async function destroyUser(id) {
     destroyPromise.finally(() => dbconnect.closeClient());
     let promiseResult = await destroyPromise;
     if (!promiseResult)
-        throw Error(`User with ID '${id}' does not exist. Could not destroy.`);
+        throw new RequestError(
+            `User with ID '${id}' does not exist. Could not destroy.`,
+            404
+        );
     console.log(`Destroyed user with id '${id}'.`);
 }
 
@@ -412,9 +488,10 @@ async function destroyUser(id) {
  * @returns A Promise which resolves to `true` if the password matches.
  */
 async function checkPassword(id, password) {
-    if (isEmpty(id)) throw Error("ID is required but was not provided.");
+    if (isEmpty(id))
+        throw new RequestError("ID is required but was not provided.");
     if (isEmpty(password))
-        throw Error(
+        throw new RequestError(
             "Password is required for comparison but was not provided."
         );
 
@@ -427,14 +504,14 @@ async function checkPassword(id, password) {
         compareResult = bcrypt.compareSync(password, hashUserPass);
     } catch (error) {
         console.error("Password check: ", error.message);
-        throw Error(
+        throw new RequestError(
             "There is a problem with the currently set user password. " +
-                "Use changePassword() to set this user's password again."
+                'Use the "change password" function to set this user\'s password again.',
+            422
         );
     }
     return compareResult;
 }
-
 
 /**
  * Changes the password of a user, encrypting it before storage.
@@ -442,9 +519,10 @@ async function checkPassword(id, password) {
  * @param {string} newPassword The new password for the user. Preferably already SHA-256 hashed by the client.
  */
 async function changePassword(id, newPassword) {
-    if (isEmpty(id)) throw Error("ID is required but was not provided.");
+    if (isEmpty(id))
+        throw new RequestError("ID is required but was not provided.");
     if (isEmpty(newPassword))
-        throw Error("newPassword is required but was not provided.");
+        throw new RequestError("newPassword is required but was not provided.");
 
     let encPassword = securePassword(newPassword);
     prepClient();
@@ -454,8 +532,9 @@ async function changePassword(id, newPassword) {
     );
     let promiseResult = await updatePromise;
     if (!promiseResult)
-        throw Error(
-            `User with ID '${id}' does not exist. Could not change password.`
+        throw new RequestError(
+            `User with ID '${id}' does not exist. Could not change password.`,
+            404
         );
     console.log(`Password successfully changed for user '${id}'`);
 }
@@ -474,16 +553,18 @@ async function createSessionToken(
     identifierForm = "email",
     expiresInHours = 1
 ) {
+    if (identifierForm.match(idRegex)) identifierForm = "_id";
     let validIDForms = ["_id", "email"];
     if (!validIDForms.includes(identifierForm))
-        throw Error(
+        throw new RequestError(
             `Invalid identifier form (should be one of: ${validIDForms})`
         );
     if (identifierForm == "email") {
         let id = await getUserData(identifier, "_id", identifierForm);
         if (!id)
-            throw Error(
-                `User could not be found for email '${identifier}'. Unable to create token.`
+            throw new RequestError(
+                `User could not be found for email '${identifier}'. Unable to create token.`,
+                404
             );
         identifier = id._id;
     }
@@ -493,8 +574,9 @@ async function createSessionToken(
         throw error;
     });
     if (!passCheck)
-        throw Error(
-            `Password did not match for user with identifier '${identifier}'. Unable to create token.`
+        throw new RequestError(
+            `Password did not match for user with identifier '${identifier}'. Unable to create token.`,
+            403
         );
 
     let preToken = identifier + new Date().toString();
@@ -514,18 +596,20 @@ async function createSessionToken(
         getCollection(userTokenCollection).insertOne(tokenObject);
     insertPromise.finally(() => dbconnect.closeClient());
     let promiseResult = await insertPromise;
-    if (!promiseResult) throw Error("Unknown failure. Token not generated.");
+    if (!promiseResult)
+        throw new RequestError("Unknown failure. Token not generated.", 500);
     console.log(`Token generated for user '${identifier}'.`);
-    return genToken;
+    return tokenObject;
 }
 
 /**
  * Verifies if a session token exists, and if it is in-date.
  * @param {string} token The token to verify
- * @returns A Promise which resolves to `true` if the token is valid.
+ * @returns A Promise which resolves to the user ID if the token is valid, or `false` if it is not.
  */
 async function checkSessionToken(token) {
-    if (isEmpty(token)) throw Error("Token is required but was not provided.");
+    if (isEmpty(token))
+        throw new RequestError("Token is required but was not provided.");
 
     prepClient();
     let getPromise = getCollection(userTokenCollection).findOne({ _id: token });
@@ -537,17 +621,18 @@ async function checkSessionToken(token) {
     let tokenExpiry = promiseResult.expiry;
 
     // If expiry is before now (i.e. expired) - invalid
-    if (tokenExpiry <= new Date()) return false;
+    if (!tokenExpiry || tokenExpiry <= new Date()) return false;
     // Otherwise, token is valid
-    return true;
+    return promiseResult.userID;
 }
 
 /**
  * Forcibly expires (i.e. deletes) a session token on the database.
  * @param {string} token
  */
-function expireToken(token) {
-    if (isEmpty(token)) throw Error("Token is required but was not provided.");
+function expireSessionToken(token) {
+    if (isEmpty(token))
+        throw new RequestError("Token is required but was not provided.");
 
     prepClient();
     let deletePromise = getCollection(userTokenCollection).findOneAndDelete({
@@ -571,6 +656,7 @@ function expireToken(token) {
 }
 
 module.exports = {
+    RequestError,
     sex,
     listRequiredFields,
     createUser,
@@ -584,5 +670,5 @@ module.exports = {
     changePassword,
     createSessionToken,
     checkSessionToken,
-    expireToken,
+    expireSessionToken,
 };
