@@ -15,6 +15,11 @@ const idRegex = /[_]?id/i;
 
 // Custom Error
 class RequestError extends Error {
+    /**
+     * A custom error to be thrown in case of problems when performing user DB actions.
+     * @param {string} message A message to return describing the issue (and/or the cause).
+     * @param {int} statusCode *(optional)* A preferred HTTP status code to return. Default is `400` (Bad Request).
+     */
     constructor(message, statusCode = 400) {
         super(message);
         this.name = "RequestError";
@@ -120,9 +125,9 @@ const requiredFields = {
  * @param {object} userObject The user object to check the fields for
  * @param {string[]} ignoredFields Any fields to ignore in the checks
  */
-function checkUserReqFields(userObject, ignoredFields=[]) {
+function checkUserReqFields(userObject, ignoredFields = []) {
     for (const field of Object.keys(requiredFields)) {
-        if(ignoredFields.includes(field)) continue;
+        if (ignoredFields.includes(field)) continue;
         let fieldValue = userObject[field];
         // If field does not exist
         if (isEmpty(fieldValue))
@@ -205,6 +210,8 @@ function listRequiredFields() {
  * @throws Various `Error`s when fields are missing or invalid.
  */
 async function createUser(userObject) {
+    if (!userObject)
+        throw new RequestError("Provided user object was missing or empty");
     // If "(_)id" key is anywhere in the userObject
     if (Object.keys(userObject).find((key) => key.match(idRegex)))
         throw new RequestError(
@@ -266,6 +273,8 @@ async function getUserWhole(identifier, identifierForm = "_id") {
  * @param {object} userObject The userObject to replace the user with in the database. Must contain required fields.
  */
 async function updateUserWhole(userObject) {
+    if (!userObject)
+        throw new RequestError("Provided user object was missing or empty");
     if (isEmpty(userObject["_id"]))
         throw new RequestError(
             "No '_id' found in userObject; one should be included to update user. " +
@@ -282,7 +291,7 @@ async function updateUserWhole(userObject) {
                 `User with ID '${userObject._id}' does not exist. Could not update.`,
                 404
             );
-        else throw error
+        else throw error;
     }
 
     prepClient();
