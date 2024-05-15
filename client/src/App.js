@@ -9,11 +9,13 @@ import logo512 from './devLogo.png'
 
 export default function App() {
 
+
+
   return (
     <Router>
       <div className="App">
         <div className="pageHead"><img src={logo512} alt="testimage" className="headerLogo" /><AccountBar/></div>
-
+    
         
         <Navbar />
         <Routes>

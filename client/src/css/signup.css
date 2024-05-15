@@ -1,6 +1,7 @@
-.formEntry{
+.formEntry {
+    margin-top:10px;
     list-style:none;
-    margin-top:10px
+    
 }
 .formButton{
     margin: 30px;

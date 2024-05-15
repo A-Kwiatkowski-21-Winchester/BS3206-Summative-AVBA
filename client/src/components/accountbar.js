@@ -1,18 +1,26 @@
+import axios from "axios";
 import "../css/accountbar.css";
 
 let loggedin = false;
 let tokenContent = "null";
 
 function logIn() {
-    if (localStorage.getItem("loginStatus") == null) { //Check for presence of "loginStatus" token in localStorage 
-        localStorage.setItem("loginStatus", tokenContent) //If "loginStatus" is null, user is not logged in and "loginStatus" is not present. Add it.
-        //Aditional code is required for account credential verification and handling
-        window.location.reload() //As login is done via the page header, the page must be refreshed to update the UI whilst keeping the user on the same page
-    } else {
-        alert("Uh oh! Something has gone wrong!")
-        //User is already logged in and the login button should not be able to be pressed
-        //If somehow user presses login whilst already being logged in, should redirect to error page.
+    var cred = {
+        email:document.forms["loginCredentialsEntry"]["loginEmail"].value,
+        password:document.forms["loginCredentialsEntry"]["loginPassword"].value,
     }
+    axios.post("http://localhost:8080/login",cred)
+
+
+    // if (localStorage.getItem("loginStatus") == null) { //Check for presence of "loginStatus" token in localStorage 
+    //     localStorage.setItem("loginStatus", tokenContent) //If "loginStatus" is null, user is not logged in and "loginStatus" is not present. Add it.
+    //     //Aditional code is required for account credential verification and handling
+    //     window.location.reload() //As login is done via the page header, the page must be refreshed to update the UI whilst keeping the user on the same page
+    // } else {
+    //     alert("Uh oh! Something has gone wrong!")
+    //     //User is already logged in and the login button should not be able to be pressed
+    //     //If somehow user presses login whilst already being logged in, should redirect to error page.
+    // }
 }
 
 function logOut() {
@@ -32,7 +40,7 @@ function sendToAccount() {
     window.location = "/account" //Redirect user to account page. Potentially further code needed if data needs to be passed during this redirect
 }
 
-const accountBar = () => {  //Construct accountBar component
+export default function accountBar() {  //Construct accountBar component
     if (localStorage.getItem("loginStatus")) { //If "loginStatus" token exists, user is logged in and logged in variant of UI should be displayed
         return (
             <div className="loggedinInteract">
@@ -68,5 +76,5 @@ const accountBar = () => {  //Construct accountBar component
         )
     }
 }
-export default accountBar;
+
 
