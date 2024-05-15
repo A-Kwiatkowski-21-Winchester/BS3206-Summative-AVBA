@@ -8,10 +8,18 @@ Once the project repository is cloned on your machine, you should open two termi
 > In case of problems with the below commands, see the [Issues](#issues) section.
 
 
-
 **In Order:**
 ### Environment variables (first setup)
 If this is a fresh clone, ensure you review the [Database Interaction Setup](#setup) section to set up your environment variables.
+
+### Easy Run & Debug:
+Both the client and the server can be run from the **Run & Debug** menu in VSCode.
+
+| | | |
+|---|---|---|
+| ![Run Button](readme/run_button.png) | ➔ | ![Run Panel](readme/run_screen.png) | 
+
+#### or, via console:
 
 ### Terminal 1 (Server):
 #### 1. Enter the server directory

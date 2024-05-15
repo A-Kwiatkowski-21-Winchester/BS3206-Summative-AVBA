@@ -3,7 +3,7 @@ import pluginJs from "@eslint/js";
 import pluginReactConfig from "eslint-plugin-react/configs/recommended.js";
 
 export default [
-  { files: ["**/*.js"], languageOptions: { sourceType: "commonjs" } },
+  { files: ["**/*.js"], languageOptions: { sourceType: "module" } },
   { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
   pluginJs.configs.recommended,
   pluginReactConfig,
@@ -11,7 +11,8 @@ export default [
     rules: {
       "no-unused-vars": "warn",
       "no-undef": "error",
-      "no-unreachable": "warn"
+      "no-unreachable": "warn",
+      "react/react-in-jsx-scope": "off"
     },
   },
 ];
