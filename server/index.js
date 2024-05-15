@@ -1,6 +1,7 @@
 require("dotenv").config();
 const cors = require("cors");
-const dbUtil = require('./libs/dbUserUtils')const express = require("express");
+const dbUtil = require('./libs/dbUserUtils')
+const express = require("express");
 const cookieParser = require('cookie-parser')
 
 const userRoutes = require("./routes/users");
