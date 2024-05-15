@@ -374,7 +374,11 @@ router.get("/get-data", async (req, res) => {
     let tokenCheck = await verifyToken(req, res, undefined, req.query.id);
     if (!tokenCheck.valid) return tokenCheck.error;
 
-    let task = dbUserUtils.getUserData(req.query.iden, req.query.fieldNames);
+    let task = dbUserUtils.getUserData(
+        req.query.iden,
+        req.query.fieldNames,
+        req.query.idenForm
+    );
     try {
         let taskResult = await task;
         return statusReturnJSON(res, 200, taskResult);
