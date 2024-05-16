@@ -57,7 +57,7 @@ function sendToAccount() {
     window.location = "/account" //Redirect user to account page. Potentially further code needed if data needs to be passed during this redirect
 }
 
-export default function accountBar() {  //Construct accountBar component
+export default function AccountBar() {  //Construct accountBar component
 
     const [userID, setUserID] = useState(undefined);
 
