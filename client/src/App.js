@@ -1,18 +1,26 @@
 import './App.css';
 import axios from 'axios';
+import { Link } from "react-router-dom";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/navbar';
 import AccountBar from './components/accountbar';
 import { home, SignUp, Contact, BmiCalculator, BmiTracker, BmiInformation, Bmitest, BmiAdults, BmiChildren } from './Pages/pageindex';
 import "./css/general.css";
 import logo512 from './devLogo.png'
+import AVBA from './AvbaLogo.png'
 
 export default function App() {
 
   return (
     <Router>
       <div className="App">
-        <div className="pageHead"><img src={logo512} alt="testimage" className="headerLogo" /><AccountBar/></div>
+        {/* <div className="pageHead"><img src={logo512} alt="testimage" className="headerLogo" /><AccountBar/></div> */}
+        <div className="pageHead">
+            <Link to="/">
+                <img src={AVBA} alt="testimage" className="headerLogo" />
+            </Link>
+            <AccountBar />
+        </div>
 
         
         <Navbar />

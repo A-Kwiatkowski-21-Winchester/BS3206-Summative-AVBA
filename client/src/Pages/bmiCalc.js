@@ -4,6 +4,16 @@ import axios from 'axios';
 
 function BMI()  {
 
+    
+    const [loggedIn, setLoggedIn] = useState(false); // State to track user login status
+
+    // Function to check if user is logged in (you can replace this with your actual authentication logic)
+    useEffect(() => {
+        // Simulate checking if user is logged in
+        const userLoggedIn = localStorage.getItem("loggedIn");
+        setLoggedIn(!!userLoggedIn); // Convert truth/false value to boolean
+    }, []);
+
     const [showInfo, setShowInfo] = useState(false);
 
     // Function to toggle the visibility of the additional information
@@ -12,7 +22,6 @@ function BMI()  {
         setShowInfo(!showInfo);
     }
 
-    const [age, setAge] = useState();
     const [weight, setWeight] = useState();
     const [height, setHeight] = useState();
     const [feet, setFeet] = useState();
@@ -24,17 +33,25 @@ function BMI()  {
     // const reload = () => {
     //     window.location.reload();
     // };
+
+    // get user id 
     
-    async function saveData(){
-        // e.preventDefault();
+    async function saveData(e){
+        e.preventDefault();
+         // Check if the user is logged in before saving data
+         if (!loggedIn) {
+            alert("You need to be logged in to save data.");
+            return;
+        }
         const bmiDetails = {
-            // age,
             weight,
-            // height,
+            height,
             // feet,
             // inches,
-            // bmi
+            bmi
         }
+        
+        console.log(weight)
         const apiCall = await fetch('http://localhost:8080/api/bmi/create', {
             method:'POST', 
             body:JSON.stringify(bmiDetails),
@@ -48,10 +65,6 @@ function BMI()  {
     }
 
     useEffect(() => {
-        // if (weight === 0 || (height === 0 && (feet === 0 || inches === 0))) {
-        //     setMsg('');
-        //     return;
-        // }
 
         if (!weight || (!height && (!feet || !inches))) {
             setBmi(null);
@@ -89,7 +102,7 @@ function BMI()  {
                 <a href="/bmitest" class="button">Go back</a>
             </p>
                 <h1>Calculate your body mass index (BMI)</h1>
-                <h2>Height & Weight</h2>
+                <h3>Height & Weight</h3>
 
  {/*link for another screen which gives more info of bmi then on that page one for the calc itself*/} 
             <div className="infoContainer">
@@ -106,20 +119,15 @@ function BMI()  {
             </div>              
 
                 <form onSubmit={saveData}>
-                    {/* <div>
-                        <label className="labels">Age:</label><br />
-                        <input className="bmi-input" type="number" placeholder="Age..." value={age} onChange={(e)=>setAge(e.target.value)} />
-                    </div> */}
-
                     {weightSystem === 'metric' ? (
                         <>
                             <div>
                                 <label className="labels">Height (cm):</label><br />
-                                <input className="bmi-input" type="number" placeholder="Height (cm)..." value={height} onChange={(e)=>setHeight(e.target.value)} />
+                                <input className="bmi-input" type="number" placeholder="Height (cm)..."  onChange={(e)=>setHeight(e.target.value)} value={height} />
                             </div>
                             <div>
                                 <label className="labels">Weight (kg):</label><br />
-                                <input className="bmi-input" type="number" placeholder="Weight (kg)..." value={weight} onChange={(e)=>setWeight(e.target.value)}/>
+                                <input className="bmi-input" type="number" placeholder="Weight (kg)..."  onChange={(e)=>setWeight(e.target.value)} value={weight}/>
                             </div>
                         </>
                     ) : (
@@ -146,15 +154,11 @@ function BMI()  {
                             <option value="imperial">Imperial (lbs, feet/in)</option>
                         </select>
                     </div>
-
-                    {/* <div>
-                        <button className="btn" type="submit">Calculate</button>
-                        <button className="btn btn-reload" type="button" onClick={reload}>Reload</button>
-                    </div> */}
                     <br/>
                     <div>
                         <button className="bttn" type="submit">Calculate</button>
-                        {/* <button className="bttn" type="submit">Save</button> */}
+                        {/* <button className="bttn" type="button" onClick={() => setLoggedIn(!loggedIn)}>{loggedIn ? "Logout" : "Login"}</button> */}
+                        <button className="bttn" type="submit" disabled={!loggedIn}>Save</button>
                     </div>
                 </form>
 

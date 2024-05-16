@@ -12,6 +12,7 @@
     transition: background-color 0.3s, color 0.3s;
     border-radius: 20px; /* Adjust the value to change the roundness */
     font-size: 18px; /* Increase font size for bigger text */
+    margin-right: 10px; /* Add margin between buttons */
 }
 
 .bttn:hover {
@@ -65,5 +66,10 @@ ul {
 
 .infoText {
     margin-left: 10px; /* Adjust the left margin as needed */
+}
+
+.childBmi {
+border: 0.25em solid #005eb8;
+background-color: #FFF;
 }
 
