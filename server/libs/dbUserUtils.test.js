@@ -383,8 +383,14 @@ describe("changePassword() tests", () => {
     test("changePassword() with existent ID", async () => {
         checkForTestUser(); // Checks for previously created user
 
+        // Change password
         await expect(
             dbUserUtils.changePassword(await validTestUserID, "bonk")
+        ).resolves.not.toThrow();
+
+        // Check password after change to confirm
+        await expect(
+            dbUserUtils.checkPassword(await validTestUserID, "bonk")
         ).resolves.not.toThrow();
     });
 });
