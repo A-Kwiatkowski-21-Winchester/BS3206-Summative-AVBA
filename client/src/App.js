@@ -3,7 +3,7 @@ import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/navbar';
 import AccountBar from './components/accountbar';
-import { home, SignUp, Contact } from './Pages/pageindex';
+import { home, SignUp, Contact, BmiCalculator, BmiTracker, BmiInformation, Bmitest, BmiAdults, BmiChildren } from './Pages/pageindex';
 import "./css/general.css";
 import logo512 from './devLogo.png'
 
@@ -23,6 +23,13 @@ export default function App() {
           <Route path="/mental"></Route>
           <Route path="/fitness"></Route>
           <Route path="/contact" element={<Contact/>}></Route>
+          <Route path="/bmitest" element={<Bmitest/>}></Route>
+          <Route path="/bmiAdults" element={<BmiAdults/>}></Route>
+          <Route path="/bmiChildren" element={<BmiChildren/>}></Route>
+          {/* <Route path="/bmiInformation" element={<BmiInformation />}>
+            <Route path="bmiCalc" element={<BmiCalculator />} />
+            <Route path="bmiTracker" element={<BmiTracker />} />
+          </Route> */}
         </Routes>
       </div>
     </Router>

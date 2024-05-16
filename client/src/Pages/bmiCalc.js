@@ -72,7 +72,7 @@ const BMI = () => {
                 <h1>Calculate your body mass index (BMI)</h1>
                 <h2>Check your BMI to find out if you're a healthy weight for your height.</h2>
 
-{/*link for another screen which gives more info of bmi then on that page one for the calc itself*/}               
+ {/*link for another screen which gives more info of bmi then on that page one for the calc itself*/}               
 
                 <form onSubmit={saveData}>
                     {/* <div>
@@ -136,29 +136,30 @@ const BMI = () => {
         </div>
     );
 };
+export default BMI;
 
-const App = () => {
-  const [showBMI, setShowBMI] = useState(false);
+// const App = () => {
+//   const [showBMI, setShowBMI] = useState(false);
 
-  const apiCall = () => {
-    axios.get('http://localhost:8080').then((data) => {
-      console.log(data)
-    })
-  }
+//   const apiCall = () => {
+//     axios.get('http://localhost:8080').then((data) => {
+//       console.log(data)
+//     })
+//   }
 
-  const handleBMIClick = () => {
-    setShowBMI(true);
-  }
+//   const handleBMIClick = () => {
+//     setShowBMI(true);
+//   }
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <button onClick={apiCall}>Test API Call</button>
-        <button onClick={handleBMIClick}>BMI</button>
-      </header>
-      {showBMI && <BMI />}
-    </div>
-  );
-}
+//   return (
+//     <div className="App">
+//       <header className="App-header">
+//         {/* <button onClick={apiCall}>Test API Call</button> */}
+//         <button onClick={handleBMIClick}>BMI</button>
+//       </header>
+//       {showBMI && <BMI />}
+//     </div>
+//   );
+// }
 
-export default App;
+// export default App;

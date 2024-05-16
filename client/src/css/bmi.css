@@ -1,0 +1,18 @@
+.bmiPage {
+    max-width: auto; /* Adjust as needed */
+    margin: 50px; /* Center the content horizontally */
+    text-align: left;
+    width: 629.328125px;
+    
+}
+
+ul {
+    text-align: left; /* Align bullet points to the left */
+    max-width: auto; /* Adjust as needed */
+    margin: left; /* Center the list */
+}
+
+.link {
+    text-decoration: underline;
+    color: blue; /* Change color if needed */
+}
