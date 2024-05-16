@@ -18,18 +18,19 @@ export default function BookAppointments(){
         
         const response = await fetch('http://localhost:8080/api/appointments/create',{
             method: 'POST',
+            
             body: JSON.stringify(appointmentDetails),
             headers:{
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             }
         })
-        const json = await response.json()
+        const apiResponse = await response
 
         if(!response.ok){
-            console.log(json.error)
+            console.log(apiResponse.error)
         }
         if (response.ok){
-            console.log(json)
+            console.log(apiResponse)
             alert("Success! Appointment created.")
         }
         
@@ -69,7 +70,7 @@ export default function BookAppointments(){
                 required/>
 
                 <label>Time</label>
-                <input type="time" 
+                <input type="Time" 
                 onChange={(e) => setTime(e.target.value)}
                 value = {time}
                 required/>

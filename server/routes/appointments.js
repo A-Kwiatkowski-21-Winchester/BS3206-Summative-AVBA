@@ -1,5 +1,5 @@
 const express = require('express');
-const dbconnect = require('../dbconnect');
+const dbconnect = require('../libs/dbconnect');
 const { ObjectId } = require('mongodb');
 const router = express.Router();
 
@@ -34,7 +34,9 @@ router.post('/create', (req, res) => {
     let recordPromise = collection.insertOne(req.body);
 
     recordPromise.then(
-        () => Alert("Successuflly updated DB")
+        () => {console.log("Successuflly updated DB")
+            res.status(200).send("Success!")
+        }
     )
     recordPromise.catch(
         () => console.error("Error in updating DB.")

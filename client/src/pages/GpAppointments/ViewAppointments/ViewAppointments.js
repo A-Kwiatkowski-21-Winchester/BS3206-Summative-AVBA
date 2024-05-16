@@ -34,6 +34,7 @@ export default function ViewAppointments(){
         }
         if (response.ok){
             console.log(json)
+            alert("Success! Appointment Deleted.")
         }
     }
 

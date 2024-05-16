@@ -31,13 +31,11 @@ try {
 
 //routes
 app.use('/api/users', userRoutes);
-
+app.use('/api/appointments', appointmentRoutes);
 // Default route
 app.use('/', function(req, res) {
   res.status(404).send("Page not found (invalid URL)")
 });
-//routes
-app.use('/api/appointments', appointmentRoutes);
 
 
 app.listen(PORT, () => {
