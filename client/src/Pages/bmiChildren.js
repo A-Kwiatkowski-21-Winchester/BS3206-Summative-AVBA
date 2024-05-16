@@ -13,6 +13,19 @@ function BmiChildren() {
         setShowInfo(!showInfo);
     }
 
+    const [weight, setWeight] = useState();
+    const [height, setHeight] = useState();
+    const [day, setDay] = useState();
+    const [month, setMonth] = useState();
+    const [year, setYear] = useState();
+    const [feet, setFeet] = useState();
+    const [inches, setInches] = useState();
+    const [bmi, setBmi] = useState();
+    const [msg, setMsg] = useState('');
+    const [weightSystem, setWeightSystem] = useState('metric'); // Default to metric
+    const [gender, setGender] = useState('');
+
+
     return (
         <div className="bmiPage">
              <p>
@@ -95,18 +108,112 @@ function BmiChildren() {
                 See a GP if you're concerned about your or your child's weight. 
                 They may be able to refer you to your local healthy lifestyle programme for children, young people and families.
             </p>
-            <div className="childBmi">
-                <h2>
-                    BMI calculator for children and teenagers
-                </h2>
-                <p>
-                    Height
-                </p>
+            <div className="parentContainer">
+                <div className="childBmi">
+                    <h2>
+                        BMI calculator for children and teenagers
+                    </h2>
+                    <h3>
+                        Height
+                    </h3>
+                    <p>
+                        Centimetres
+                    </p>
+                    <input className="bmi-input" type="number" placeholder=""  onChange={(e)=>setHeight(e.target.value)} value={height} />
+
+                    <hr className="divider" /> {/* Grey line divider after height input */}
+
+                    <h3>
+                        Weight
+                    </h3>
+                    <p>
+                        Kilograms
+                    </p>
+                    <input className="bmi-input" type="number" placeholder=""  onChange={(e)=>setWeight(e.target.value)} value={weight}/>
+
+                    <hr className="divider" /> {/* Grey line divider after weight input */}
+
+                    <h3>
+                        Date of birth
+                    </h3>
+                    <p>
+                        For example, 12 05 2015
+                    </p>
+
+                    {/* Additional information dropdown */}
+                    <div className="infoContainer">
+                        <p>
+                            <a href="/#" className="link" onClick={toggleInfo}>Why do we need to know?</a>
+                        </p>
+                        {showInfo && (
+                            <div className="infoContent">
+                                <div className="infoText">
+                                    <p>Date of birth is needed to accurately work out the BMI of anyone under 18 years old.</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="buttonContainer">
+                        <div className="buttonWrapper">
+                            <p>Day</p>
+                            <input className="bmi-input" type="number" placeholder="" onChange={(e) => setDay(e.target.value)} value={day} />
+                        </div>
+
+                        <div className="buttonWrapper">
+                            <p>Month</p>
+                            <input className="bmi-input" type="number" placeholder="" onChange={(e) => setMonth(e.target.value)} value={month} />
+                        </div>
+
+                        <div className="buttonWrapper">
+                            <p>Year</p>
+                            <input className="bmi-input" type="number" placeholder="" onChange={(e) => setYear(e.target.value)} value={year} />
+                        </div>
+                    </div>
+
+                    <hr className="divider" /> {/* Grey line divider after weight input */}
+
+                    <h3>
+                        Sex
+                    </h3>
+                    {/* Additional information dropdown */}
+                    <div className="infoContainer">
+                        <p>
+                            <a href="/#" className="link" onClick={toggleInfo}>Why do we need to know?</a>
+                        </p>
+                        {showInfo && (
+                            <div className="infoContent">
+                                <div className="infoText">
+                                    <p>For children and teenagers, BMI centile is sex specific. We give more personalised information based on whether you are male or female.</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <br/>
+                    <div className="genderWrapper">
+                         <label>
+                            <input type="radio" name="gender" value="male" onChange={(e) => setGender(e.target.value)} />
+                            Male
+                        </label>
+                        <label>
+                            <input type="radio" name="gender" value="female" onChange={(e) => setGender(e.target.value)} />
+                            Female
+                        </label>
+                    </div>
+                   
+                    <div>
+                        <button className="bttn" type="submit">Calculate</button>
+                        <button className="bttn" type="reset">Reload</button>
+                        {/* <button className="bttn" type="button" onClick={() => setLoggedIn(!loggedIn)}>{loggedIn ? "Logout" : "Login"}</button> */}
+                        {/* <button className="bttn" type="submit" disabled={!loggedIn}>Save</button> */}
+                    </div>
+                </div>
             </div>
+
 
 
         </div>
     );
-}
+}   
 
 export default BmiChildren;

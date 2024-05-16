@@ -1,9 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/bmi.css";
 import { Link } from "react-router-dom";
+import { getUserID } from "../libs/cookies";
 
 function BmiAdults() {
-    const [showInfo, setShowInfo] = useState(false);
+    const [loggedIn, setLoggedIn] = useState(false); // State to track user login status
+
+    // Function to check if user is logged in (you can replace this with your actual authentication logic)
+    useEffect(() => {
+        // Simulate checking if user is logged in
+        setLoggedIn(!!getUserID()); // Convert truth/false value to boolean
+    }, []);
+
 
     // Function to toggle the visibility of the additional information
     const toggleInfo = (e) => {
@@ -11,11 +19,90 @@ function BmiAdults() {
         setShowInfo(!showInfo);
     }
 
+    const [showInfo, setShowInfo] = useState(false);
+    const [weight, setWeight] = useState();
+    const [height, setHeight] = useState();
+    const [gender, setGender] = useState('');
+    const [feet, setFeet] = useState();
+    const [inches, setInches] = useState();
+    const [bmi, setBmi] = useState();
+    const [msg, setMsg] = useState('');
+    const [weightSystem, setWeightSystem] = useState('metric'); // Default to metric
+
+    // Function to clear all input fields
+    const resetFields = () => {
+        setWeight('');
+        setHeight('');
+        setGender('');
+        setFeet('');
+        setInches('');
+        setBmi('');
+        setMsg('');
+    };
+
+    async function saveData(e){
+        e.preventDefault();
+        // Check if the user is logged in before saving data
+        if (!loggedIn) {
+            alert("You need to be logged in to save data.");
+            return;
+        }
+        const bmiDetails = {
+            weight,
+            height,
+            // feet,
+            // inches,
+            bmi
+        }
+        
+        console.log(weight)
+        const apiCall = await fetch('http://localhost:8080/api/bmi/create', {
+            method:'POST', 
+            body:JSON.stringify(bmiDetails),
+            headers:{
+                'Content-Type': 'application/json'
+            }
+        })
+        const apiResponse = await apiCall.json()
+
+        console.log(apiResponse)
+    }
+
+    useEffect(() => {
+        if (!weight || (!height && (!feet || !inches))) {
+            setBmi(null);
+            setMsg('');
+            return;
+        }
+
+        let bmiFormula;
+        if (weightSystem === 'metric') {
+            const heightInMeters = height / 100;
+            bmiFormula = weight / (heightInMeters * heightInMeters);
+        } else {
+            const heightInInches = feet * 12 + inches;
+            bmiFormula = (weight / (heightInInches * heightInInches)) * 703;
+        }
+
+        const calculatedBmi = bmiFormula.toFixed(2);
+        setBmi(calculatedBmi);
+
+        if (calculatedBmi < 18.5) {
+            setMsg("You're Underweight");
+        } else if (calculatedBmi >= 18.5 && calculatedBmi < 23) {
+            setMsg("You're Healthy");
+        } else if (calculatedBmi >= 23 && calculatedBmi < 27.5) {
+            setMsg("You're Overweight");
+        } else {
+            setMsg("You're Obese");
+        }
+    }, [weight, height, feet, inches, weightSystem]);
+
     return (
         <div className="bmiPage">
              <p>
                {" "}
-                <a href="/bmitest" class="button">Go back</a>
+                <a href="/bmitest" className="button">Go back</a>
             </p>
 
             <h1>Calculate your BMI for adults</h1>
@@ -32,14 +119,14 @@ function BmiAdults() {
 
             <br />
             <p>
-                This tool should not be used to make any symptom diagnoses. Get in touch with your GP or neighbourhood chemist if you're concerned about your weight.
+                This tool should not be used to make any symptom diagnoses. Get in touch with your GP or neighborhood chemist if you're concerned about your weight.
             </p>
 
             <h2>
-                Who can not use the tool
+                Who cannot use the tool
             </h2>
             <p>
-                You are not permitted to use this tool if you, or the person you are using it for fall into these catergories:
+                You are not permitted to use this tool if you, or the person you are using it for fall into these categories:
             </p>
 
             <br />
@@ -52,18 +139,18 @@ function BmiAdults() {
 
             <br />
             <div className="infoContent">
-                        <div className="infoText">
-                        <p>
-                            If you or your child are aged between 2-17,{" "}
-                            <Link to="/bmiChildren" className="link">Calculate your BMI for children and teenagers</Link>
-                </p>
-                        </div>
-                    </div>
+                <div className="infoText">
+                    <p>
+                        If you or your child are aged between 2-17,{" "}
+                        <Link to="/bmiChildren" className="link">Calculate your BMI for children and teenagers</Link>
+                    </p>
+                </div>
+            </div>
 
             <br />
             <h2>What you need</h2>
             <p>
-                To use the calculator, you will need to know you:
+                To use the calculator, you will need to know your:
             </p>
 
             <ul>
@@ -77,7 +164,7 @@ function BmiAdults() {
                 The calculator will also ask for information on your ethnic background.
             </p>
             <p>
-                This is because people from an Asian, Black African, African-Caribbean or Middle Eastern ethnic background have a higher chance of developing health problems at a lower BMI.
+                This is because people from an Asian, Black African, African-Caribbean, or Middle Eastern ethnic background have a higher chance of developing health problems at a lower BMI.
             </p>
             <p>
                 When you enter information on your ethnic background, the calculator will give you more accurate advice about your BMI result.
@@ -86,7 +173,7 @@ function BmiAdults() {
             <br />
             <h2>Your results</h2>
             <p>
-            Your BMI result will be displayed as a number with one of these weight categories:
+                Your BMI result will be displayed as a number with one of these weight categories:
             </p>
             <ul>
                 <li>underweight</li>
@@ -107,9 +194,9 @@ function BmiAdults() {
                 {showInfo && (
                     <div className="infoContent">
                         <div className="infoText">
-                            <p>The BMI is calculated by dividing an adult's weight in kilograms by their height in metres squared.</p>
+                            <p>The BMI is calculated by dividing an adult's weight in kilograms by their height in meters squared.</p>
                             <p>For example, if you weigh 70kg (around 11 stone) and are 1.73m (around 5 foot 8 inches) tall, you work out your BMI by:</p>
-                            <p>squaring your height in metres: 1.73 x 1.73 = 2.99</p>
+                            <p>squaring your height in meters: 1.73 x 1.73 = 2.99</p>
                             <p>dividing your weight in kilograms: 70 ÷ 2.99 = 23.41</p>
                             <p>Your result will be displayed to one decimal place, for example, 23.4.</p>
                         </div>
@@ -132,14 +219,71 @@ function BmiAdults() {
                 This is why you may get a better idea of your overall health from measuring your waist.
             </p>
 
-            <br/>
-            <p>
-                <button onClick={() => { window.location.href = '/bmiCalc'; }} className="bttn">Calculate BMI</button>
-            </p>
+            <div className="parentContainer">
+                <div className="childBmi">
+                    <h2>
+                        BMI calculator for adults
+                    </h2>
+                   
+                    <div>
+                        <button className={`bttn ${weightSystem === "metric" ? "" : "inactive"}`} onClick={() => setWeightSystem("metric")}>Metric (kg, cm)</button>
+                        <button className={`bttn ${weightSystem === "imperial" ? "" : "inactive"}`} onClick={() => setWeightSystem("imperial")}>Imperial (lbs, feet/in)</button>
+                    </div>
+
+                    {weightSystem === 'metric' ? (
+                    <>
+                        <div>
+                            <label className="labels">Height (cm):</label><br />
+                            <input className="bmi-input" type="number" placeholder=""  onChange={(e)=>setHeight(e.target.value)} value={height} />
+                        </div>
+                        <hr className="divider" /> {/* Grey line divider after height input */}
+
+                        <div>
+                            <label className="labels">Weight (kg):</label><br />
+                            <input className="bmi-input" type="number" placeholder=""  onChange={(e)=>setWeight(e.target.value)} value={weight}/>
+                        </div>
+                        <hr className="divider" /> {/* Grey line divider after height input */}
+                    </>
+                ) : (
+                    <>
+                        <div>
+                            <label className="labels">Height (ft):</label><br />
+                            <input className="bmi-input" type="number" placeholder="" value={feet} onChange={(e)=>setFeet(e.target.value)} />
+                        </div>
+                        <hr className="divider" /> {/* Grey line divider after height input */}
+
+                        <div>
+                            <label className="labels">Height (in):</label><br />
+                            <input className="bmi-input" type="number" placeholder="" value={inches} onChange={(e)=>setInches(e.target.value)} />
+                        </div>
+                        <hr className="divider" /> {/* Grey line divider after height input */}
+                        
+                        <div>
+                            <label className="labels">Weight (lbs):</label><br />
+                            <input className="bmi-input" type="number" placeholder="" value={weight} onChange={(e)=>setWeight(e.target.value)}/>
+                        </div>
+                    </>
+                )}
+                    <div className="result">
+                        {/* <h3>Age: {age}</h3> */}
+                        <h3>Your BMI is: {bmi}</h3>
+                        <p className="p_msg">{msg}</p>
+                     </div>
+
+                     <form onSubmit={saveData}>
+                        <br/>
+                        <div>
+                            <button className="bttn" type="submit">Save</button>
+                            <button className="bttn" type="button" onClick={resetFields}>Reload</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
 
         </div>
+            
     );
 }
 
 export default BmiAdults;
-

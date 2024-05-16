@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getUserID } from "../libs/cookies";
 import "../css/bmi.css";
 import axios from 'axios';
 
@@ -10,8 +11,9 @@ function BMI()  {
     // Function to check if user is logged in (you can replace this with your actual authentication logic)
     useEffect(() => {
         // Simulate checking if user is logged in
-        const userLoggedIn = localStorage.getItem("loggedIn");
-        setLoggedIn(!!userLoggedIn); // Convert truth/false value to boolean
+        setLoggedIn(!!getUserID()); // Convert truth/false value to boolean
+
+        
     }, []);
 
     const [showInfo, setShowInfo] = useState(false);
@@ -154,46 +156,21 @@ function BMI()  {
                             <option value="imperial">Imperial (lbs, feet/in)</option>
                         </select>
                     </div>
+
+                    <div className="result">
+                        {/* <h3>Age: {age}</h3> */}
+                        <h3>Your BMI is: {bmi}</h3>
+                        <p className="p_msg">{msg}</p>
+                     </div>
+
                     <br/>
                     <div>
-                        <button className="bttn" type="submit">Calculate</button>
+                        <button className="bttn" type="submit">Save</button>
                         {/* <button className="bttn" type="button" onClick={() => setLoggedIn(!loggedIn)}>{loggedIn ? "Logout" : "Login"}</button> */}
                         <button className="bttn" type="submit" disabled={!loggedIn}>Save</button>
                     </div>
                 </form>
-
-                <div className="result">
-                    {/* <h3>Age: {age}</h3> */}
-                    <h3>Your BMI is: {bmi}</h3>
-                    <p className="p_msg">{msg}</p>
-                </div>
             </div>
     );
 };
 export default BMI;
-
-// const App = () => {
-//   const [showBMI, setShowBMI] = useState(false);
-
-//   const apiCall = () => {
-//     axios.get('http://localhost:8080').then((data) => {
-//       console.log(data)
-//     })
-//   }
-
-//   const handleBMIClick = () => {
-//     setShowBMI(true);
-//   }
-
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         {/* <button onClick={apiCall}>Test API Call</button> */}
-//         <button onClick={handleBMIClick}>BMI</button>
-//       </header>
-//       {showBMI && <BMI />}
-//     </div>
-//   );
-// }
-
-// export default App;
