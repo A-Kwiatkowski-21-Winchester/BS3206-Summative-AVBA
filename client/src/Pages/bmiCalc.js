@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
+import "../css/bmi.css";
 import axios from 'axios';
 
-const BMI = () => {
+function BMI()  {
+
+    const [showInfo, setShowInfo] = useState(false);
+
+    // Function to toggle the visibility of the additional information
+    const toggleInfo = (e) => {
+        e.preventDefault();
+        setShowInfo(!showInfo);
+    }
+
     const [age, setAge] = useState();
     const [weight, setWeight] = useState();
     const [height, setHeight] = useState();
@@ -38,7 +48,13 @@ const BMI = () => {
     }
 
     useEffect(() => {
-        if (weight === 0 || (height === 0 && (feet === 0 || inches === 0))) {
+        // if (weight === 0 || (height === 0 && (feet === 0 || inches === 0))) {
+        //     setMsg('');
+        //     return;
+        // }
+
+        if (!weight || (!height && (!feet || !inches))) {
+            setBmi(null);
             setMsg('');
             return;
         }
@@ -67,12 +83,27 @@ const BMI = () => {
     }, [weight, height, feet, inches, weightSystem]);
 
     return (
-        <div className="app">
-            <div className="container">
+        <div className="bmiPage">
+            <p>
+               {" "}
+                <a href="/bmitest" class="button">Go back</a>
+            </p>
                 <h1>Calculate your body mass index (BMI)</h1>
-                <h2>Check your BMI to find out if you're a healthy weight for your height.</h2>
+                <h2>Height & Weight</h2>
 
- {/*link for another screen which gives more info of bmi then on that page one for the calc itself*/}               
+ {/*link for another screen which gives more info of bmi then on that page one for the calc itself*/} 
+            <div className="infoContainer">
+                <p>
+                    <a href="/#" className="link" onClick={toggleInfo}>Why do we need this infomation?</a>
+                </p>
+                {showInfo && (
+                    <div className="infoContent">
+                        <div className="infoText">
+                            <p>Your height and weight are required to calculate your BMI.</p>
+                        </div>
+                    </div>
+                )}
+            </div>              
 
                 <form onSubmit={saveData}>
                     {/* <div>
@@ -120,10 +151,10 @@ const BMI = () => {
                         <button className="btn" type="submit">Calculate</button>
                         <button className="btn btn-reload" type="button" onClick={reload}>Reload</button>
                     </div> */}
-
+                    <br/>
                     <div>
-                        <button className="btn" type="submit">Save</button>
-                        {/* <button className="btn btn-reload" type="button" onClick={reload}>Reload</button> */}
+                        <button className="bttn" type="submit">Calculate</button>
+                        {/* <button className="bttn" type="submit">Save</button> */}
                     </div>
                 </form>
 
@@ -133,7 +164,6 @@ const BMI = () => {
                     <p className="p_msg">{msg}</p>
                 </div>
             </div>
-        </div>
     );
 };
 export default BMI;

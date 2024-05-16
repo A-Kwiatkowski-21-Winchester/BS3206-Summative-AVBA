@@ -20,6 +20,7 @@ const Navbar = () => {
                 <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmitest">BMI</NavLink></li>
                 <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmiAdults">BMI Adult</NavLink></li>
                 <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmiChildren">BMI Children</NavLink></li>
+                <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmicalc">Bmi Calculator</NavLink></li>
 
                 {/* <li>
                 <div className="dropdown-container">

@@ -1,9 +1,41 @@
+.button {
+    color: #015089;
+}
+
+.bttn {
+    background-color: #015089;
+    color: white;
+    border: none;
+    padding: 15px 30px; /* Increase padding for a bigger button */
+    max-width: 200px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    border-radius: 20px; /* Adjust the value to change the roundness */
+    font-size: 18px; /* Increase font size for bigger text */
+}
+
+.bttn:hover {
+    background-color: white;
+    color: #015089;
+    border: 2px solid #015089; /* Add border when hovered */
+}
+
+.bttn:active {
+    background-color: #015089;
+    color: white;
+    border: 2px solid white; /* Add border when clicked */
+}
+
+
 .bmiPage {
-    max-width: auto; /* Adjust as needed */
-    margin: 50px; /* Center the content horizontally */
+    max-width: 960px; /* Adjust as needed */
+    margin-top: 100px; /* Adjust the top margin as needed */
+    margin-right: auto; /* Center the content horizontally */
+    margin-bottom: 100px;
+    margin-left: auto;
     text-align: left;
-    width: 629.328125px;
-    
+    font-size: medium;
+    padding-left: 50px; /* Adjust the left padding as needed */
 }
 
 ul {
@@ -14,5 +46,24 @@ ul {
 
 .link {
     text-decoration: underline;
-    color: blue; /* Change color if needed */
+    color: #330072; /* Change color if needed */
 }
+
+.pageLink {
+    border-left: 3px solid #015089; /* Adjust the width and color as needed */
+    margin-top: 10px;
+}
+
+.infoContainer {
+    padding-left: 10px; /* Adjust the padding as needed */
+}
+
+.infoContent {
+    border-left: 3px solid #ccc; /* Adjust the width and color as needed */
+    margin-top: 10px; /* Adjust the top margin as needed */
+}
+
+.infoText {
+    margin-left: 10px; /* Adjust the left margin as needed */
+}
+

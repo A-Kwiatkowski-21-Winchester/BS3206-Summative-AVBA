@@ -26,6 +26,7 @@ export default function App() {
           <Route path="/bmitest" element={<Bmitest/>}></Route>
           <Route path="/bmiAdults" element={<BmiAdults/>}></Route>
           <Route path="/bmiChildren" element={<BmiChildren/>}></Route>
+          <Route path="/bmiCalc" element={<BmiCalculator/>}></Route>
           {/* <Route path="/bmiInformation" element={<BmiInformation />}>
             <Route path="bmiCalc" element={<BmiCalculator />} />
             <Route path="bmiTracker" element={<BmiTracker />} />
