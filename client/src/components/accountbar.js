@@ -10,7 +10,10 @@ function logIn() {
         password:document.forms["loginCredentialsEntry"]["loginPassword"].value,
     }
     var session = axios.get(`http://localhost:8080/api/users/session/create?iden=${cred.email}&password=${cred.password}`)
-    window.location.reload()
+    .then(
+        (response) => {window.location.reload()}, 
+        (error) => {console.error(error)}
+    )
     
 
     // if (localStorage.getItem("loginStatus") == null) { //Check for presence of "loginStatus" token in localStorage 
@@ -51,44 +54,50 @@ function sendToAccount() {
 
 export default function accountBar() {  //Construct accountBar component
     try{
-        var response = axios.get(`http://localhost:8080/api/users/session/check`)
+        axios.get(`http://localhost:8080/api/users/session/check`)
+        .then(response => {
+            generateBar(response)
+        });
         console.log(response.status)
     } catch(error) {
-        
+        console.log(error);
     }
-    if (response.status==200) { //If "loginStatus" token exists, user is logged in and logged in variant of UI should be displayed
-        return (
-            <div className="loggedinInteract">
-                {/* <li><button onClick={sendToAccount}>My Account</button></li> */}
-                <li><button onClick={logOut}>Log Out</button></li>
-            </div>
-
-        )
-    } else { //If "loginStatus" token does not exist, user is not logged in and default variant of UI should be displayed
-        return (
-            <div className="loginInteract">
-                <div className="loginCred">
-                    <form name="loginCredentialsEntry">
-                        <div>
-                            <li className="loginCredLabel">Email:</li>
-                            <li className="loginCredEntry"><input type="text" name="loginEmail" required></input></li>
-
-                        </div>
-                        <div>
-                            <li className="loginCredLabel">Password:</li>
-                            <li className="loginCredEntry"><input type="password" name="loginPassword" required></input></li>
-
-                        </div>
-                    </form>
+    
+    function generateBar(response) {
+        if (response.status==200) { //If "loginStatus" token exists, user is logged in and logged in variant of UI should be displayed
+            return (
+                <div className="loggedinInteract">
+                    {/* <li><button onClick={sendToAccount}>My Account</button></li> */}
+                    <li><button onClick={logOut}>Log Out</button></li>
                 </div>
-                <div className="loginButton">
-                    <li><button onClick={logIn}>Log In</button></li>
-                    <li><button onClick={sendToSignup}>Sign Up</button></li>
+    
+            )
+        } else { //If "loginStatus" token does not exist, user is not logged in and default variant of UI should be displayed
+            return (
+                <div className="loginInteract">
+                    <div className="loginCred">
+                        <form name="loginCredentialsEntry">
+                            <div>
+                                <li className="loginCredLabel">Email:</li>
+                                <li className="loginCredEntry"><input type="text" name="loginEmail" required></input></li>
+    
+                            </div>
+                            <div>
+                                <li className="loginCredLabel">Password:</li>
+                                <li className="loginCredEntry"><input type="password" name="loginPassword" required></input></li>
+    
+                            </div>
+                        </form>
+                    </div>
+                    <div className="loginButton">
+                        <li><button onClick={logIn}>Log In</button></li>
+                        <li><button onClick={sendToSignup}>Sign Up</button></li>
+                    </div>
+    
+    
                 </div>
-
-
-            </div>
-        )
+            )
+        }
     }
 }
 

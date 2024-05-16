@@ -52,8 +52,8 @@ export default function SignUp() {
     
             firstName: form["fnameinput"].value,
             lastName: form["snameinput"].value,
-            title: form["titleinput"].value,
-            dob: form["dateinput"].value,
+            title: form["titleinput"].value, 
+            dob: form["dateinput"].value,/// Don't think so.
             sex: form["sexinput"].value,
             phone: "000000000000",
             email: form["eaddressinput"].value,
