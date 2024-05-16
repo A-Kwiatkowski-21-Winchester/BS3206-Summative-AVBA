@@ -8,7 +8,7 @@ import "react-datepicker/dist/react-datepicker.css"
 import * as querystring from "querystring-es3"
 import { getUserID } from "../libs/cookies";
 
-
+const querystring = require("querystring")
 function formCancel() {
     window.location = "/"
 }
