@@ -1,6 +1,7 @@
 import axios from "axios";
 import "../css/accountbar.css";
 import React, { useEffect, useState } from 'react';
+import { getToken, getUserID } from "../libs/cookies";
 
 let loggedin = false;
 let tokenContent = "null";
@@ -61,6 +62,12 @@ export default function accountBar() {  //Construct accountBar component
     const [userID, setUserID] = useState(undefined);
 
     useEffect(() => {
+        // If there is no token stored in cookies, return early without request
+        if(!getToken()) {
+            setUserID(false)
+            return
+        }
+
         axios.get(`http://localhost:8080/api/users/session/check`)
             .then(
                 (response) => {
@@ -69,7 +76,7 @@ export default function accountBar() {  //Construct accountBar component
                 (error) => { 
                     console.log(error)
                     setUserID(false)
-                 });
+                });
     }, []);
 
     if(userID === undefined) { // If the request hasn't gone through yet
