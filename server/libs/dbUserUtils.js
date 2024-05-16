@@ -405,7 +405,9 @@ async function getUserData(identifier, fieldNames, identifierForm = "_id") {
     if (isEmpty(identifier))
         throw new RequestError("ID is required but was not provided.");
     if (isEmpty(fieldNames))
-        throw new RequestError("One or more fieldNames are required but none were provided.");
+        throw new RequestError(
+            "One or more fieldNames are required but none were provided."
+        );
     if (identifierForm.match(idRegex)) identifierForm = "_id";
     let validIDForms = ["_id", "email"];
     if (!validIDForms.includes(identifierForm))
@@ -543,6 +545,7 @@ async function changePassword(id, newPassword) {
         { _id: id },
         { $set: { password: encPassword } }
     );
+    updatePromise.finally(() => dbconnect.closeClient());
     let promiseResult = await updatePromise;
     if (!promiseResult)
         throw new RequestError(

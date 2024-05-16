@@ -1,4 +1,5 @@
 const dbUserUtils = require("./dbUserUtils");
+const dbconnect = require("./dbconnect");
 const { describe, expect, test, afterAll } = require("@jest/globals");
 
 // Custom Error
@@ -15,6 +16,14 @@ class TestingError extends Error {
 
 function shallowClone(obj) {
     return { ...obj };
+}
+
+function checkForTestUser() {
+    if (!validTestUserID)
+        throw new TestingError(
+            "This test cannot be run alone - " /*safe*/ +
+                "it must be run as part of the entire test file"
+        );
 }
 
 const demoUser = {
@@ -92,11 +101,7 @@ describe("getUserWhole() tests", () => {
     });
 
     test("getUserWhole() with valid identifier", async () => {
-        if (!(await validTestUserID))
-            throw new TestingError(
-                "This test cannot be run alone - " +
-                    "it must be run as part of the entire test file"
-            );
+        checkForTestUser(); // Checks for previously created user
 
         let task;
         await expect(
@@ -137,11 +142,7 @@ describe("updateUserWhole() tests", () => {
     });
 
     test("updateUserWhole() with user with valid _id", async () => {
-        if (!(await validTestUserID))
-            throw new TestingError(
-                "This test cannot be run alone - " +
-                    "it must be run as part of the entire test file"
-            );
+        checkForTestUser(); // Checks for previously created user
 
         let testUser = shallowClone(demoUser);
         testUser._id = await validTestUserID; //should exist
@@ -191,12 +192,8 @@ describe("addUserData() tests", () => {
     });
 
     test("addUserData() with valid ID", async () => {
-        if (!(await validTestUserID))
-            throw new TestingError(
-                "This test cannot be run alone - " +
-                    "it must be run as part of the entire test file"
-            );
-            
+        checkForTestUser(); // Checks for previously created user
+
         await expect(
             dbUserUtils.addUserData(await validTestUserID, "extraData", "test")
         ).resolves.not.toThrow(dbUserUtils.RequestError);
@@ -206,7 +203,6 @@ describe("addUserData() tests", () => {
 
 //#region getUserData() tests
 describe("getUserData() tests", () => {
-
     test("getUserData() with no arguments", async () => {
         await expect(dbUserUtils.getUserData()).rejects.toThrow(
             dbUserUtils.RequestError
@@ -214,12 +210,185 @@ describe("getUserData() tests", () => {
     });
 
     test("getUserData() with invalid ID", async () => {
-        await expect(dbUserUtils.getUserData("!!!", "milk")).resolves.toBeFalsy();
+        await expect(
+            dbUserUtils.getUserData("!!!", "someField")
+        ).resolves.toBeFalsy();
     });
 
+    test("getUserData() with invalid idenForm", async () => {
+        await expect(
+            dbUserUtils.getUserData("!!!", "someField", "bakery")
+        ).rejects.toThrow(dbUserUtils.RequestError);
+    });
+
+    test("getUserData() with forbidden field (password)", async () => {
+        await expect(
+            dbUserUtils.getUserData("!!!", "password")
+        ).rejects.toThrow(dbUserUtils.RequestError);
+    });
+
+    test("getUserData() with non-existent field", async () => {
+        checkForTestUser(); // Checks for previously created user
+        let result = await dbUserUtils.getUserData(
+            await validTestUserID,
+            "someField"
+        );
+        expect(Object.keys(result).length).toBe(0);
+    });
+
+    test("getUserData() with one existent field", async () => {
+        checkForTestUser(); // Checks for previously created user
+        let result = await dbUserUtils.getUserData(
+            await validTestUserID,
+            "extraData"
+        );
+        expect(Object.keys(result).length).toBe(1);
+    });
+
+    test("getUserData() with array of existent fields", async () => {
+        checkForTestUser(); // Checks for previously created user
+
+        let fieldArray = ["extraData", "firstName", "lastName"];
+        let result = await dbUserUtils.getUserData(
+            await validTestUserID,
+            fieldArray
+        );
+        expect(Object.keys(result).length).toBe(fieldArray.length);
+    });
+
+    test("getUserData() with array of fields - one non-existent", async () => {
+        checkForTestUser(); // Checks for previously created user
+
+        let fieldArray = [
+            "extraData",
+            "firstName",
+            "lastName",
+            "gringle" /*invalid*/,
+        ];
+        let result = await dbUserUtils.getUserData(
+            await validTestUserID,
+            fieldArray
+        );
+        expect(Object.keys(result).length).toBe(fieldArray.length - 1);
+    });
+});
+
+//#region removeUserData() tests
+describe("removeUserData() tests", () => {
+    test("removeUserData() with no arguments", async () => {
+        await expect(dbUserUtils.removeUserData()).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+
+    test("removeUserData() with invalid ID", async () => {
+        await expect(
+            dbUserUtils.removeUserData("!!!", "someField")
+        ).rejects.toThrow(dbUserUtils.RequestError);
+    });
+
+    test("removeUserData() with non-existent field", async () => {
+        checkForTestUser(); // Checks for previously created user
+
+        await expect(
+            dbUserUtils.removeUserData(await validTestUserID, "someField")
+        ).rejects.toThrow(dbUserUtils.RequestError);
+    });
+
+    test("removeUserData() with existent field", async () => {
+        checkForTestUser(); // Checks for previously created user
+
+        await expect(
+            dbUserUtils.removeUserData(await validTestUserID, "extraData")
+        ).resolves.not.toThrow();
+    });
 });
 //#endregion
 
+//#region destroyUser() tests
+describe("destroyUser() tests", () => {
+    //TODO: Add destroy test at end of file
+    test.todo("Destroy with no args");
+    test.todo("Destroy with non-existent ID");
+    test.todo("Destroy with existent ID");
+});
+//#endregion
+
+//#region checkPassword() tests
+describe("checkPassword() tests", () => {
+    test("checkPassword() with no arguments", async () => {
+        await expect(dbUserUtils.checkPassword()).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+
+    test("checkPassword() with no password", async () => {
+        await expect(dbUserUtils.checkPassword("!!!")).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+
+    test("checkPassword() with correct password", async () => {
+        checkForTestUser(); // Checks for previously created user
+
+        await expect(
+            dbUserUtils.checkPassword(await validTestUserID, demoUser.password)
+        ).resolves.not.toThrow();
+    });
+
+    test("checkPassword() with garbled DB password", async () => {
+        checkForTestUser(); // Checks for previously created user
+
+        // * Manually manipulating password so it is garbled and undecryptable *
+        dbconnect.generateClient();
+        dbconnect.openClient();
+        let collection = dbconnect.globals.client
+            .db("Users")
+            .collection("UserData");
+        let updateTask = collection.findOneAndUpdate(
+            { _id: await validTestUserID },
+            { $set: { password: "bogus" } }
+        );
+        updateTask.finally(() => dbconnect.closeClient());
+        await updateTask;
+        // ***
+
+        await expect(
+            dbUserUtils.checkPassword(await validTestUserID, demoUser.password)
+        ).rejects.toThrow(/problem with .*? password/);
+    });
+});
+//#endregion
+
+//#region changePassword() tests
+describe("changePassword() tests", () => {
+    test("changePassword() with no arguments", async () => {
+        await expect(dbUserUtils.changePassword()).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+
+    test("changePassword() with no newPassword", async () => {
+        await expect(dbUserUtils.changePassword("!!!")).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+
+    test("changePassword() with non-existent ID", async () => {
+        await expect(dbUserUtils.changePassword("!!!", "bonk")).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+
+    test("changePassword() with existent ID", async () => {
+        checkForTestUser(); // Checks for previously created user
+
+        await expect(
+            dbUserUtils.changePassword(await validTestUserID, "bonk")
+        ).resolves.not.toThrow();
+    });
+});
+//#endregion
 
 // *** Example of conditional expect - best avoided
 // eslint-disable-next-line jest/no-commented-out-tests
