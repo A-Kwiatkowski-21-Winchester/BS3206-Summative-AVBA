@@ -7,6 +7,8 @@ import { Home, SignUp, Contact } from './pages/pageindex';
 import "./css/general.css";
 import logo512 from './devLogo.png'
 
+axios.defaults.withCredentials = true;
+
 export default function App() {
 
 

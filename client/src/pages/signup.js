@@ -5,6 +5,8 @@ import {useState} from 'react';
 import {useEffect} from 'react';
 import DatePicker from 'react-datepicker'; 
 import "react-datepicker/dist/react-datepicker.css"
+import * as querystring from "querystring-es3"
+import { getUserID } from "../libs/cookies";
 
 
 function formCancel() {
@@ -19,7 +21,7 @@ export default function SignUp() {
             e.preventDefault();
             formSubmit()
             alert("Signup Sucessful!")
-            window.location = "/"
+            //window.location = "/"
         }
     }, []);
     return (<div>
@@ -44,25 +46,40 @@ export default function SignUp() {
     </div>)
     function formSubmit() {
 
+        console.log("User ID:", getUserID());
+
         var form = document.forms["signupDetails"];
         var accountData = {
     
-            firstname: form["fnameinput"].value,
-            surname: form["snameinput"].value,
+            firstName: form["fnameinput"].value,
+            lastName: form["snameinput"].value,
             title: form["titleinput"].value,
             dob: form["dateinput"].value,
             sex: form["sexinput"].value,
             phone: "000000000000",
-            emailaddress: form["eaddressinput"].value,
+            email: form["eaddressinput"].value,
             postcode: form["postcodeinput"].value,
-            password: form["passwordinput"].value
+            password: form["passwordinput"].value,
+            isAdmin: false
     
         }
     
         if (form["passwordinput"].value == form["confpasswordinput"].value && form["passwordinput"].value != "") {
-            axios.post("http://localhost:8080/signup", accountData)
+            axios.post("http://localhost:8080/api/users/create?" + querystring.stringify(accountData))
                 .then((response) => {
-                    console.log(response);
+                    console.log("Status:", response.status);
+                    console.log("New ID:", response.data.id);
+
+                    axios.get(`http://localhost:8080/api/users/session/create?iden=${response.data.id}&idenForm=id&password=${accountData.password}`)
+                        .then(response => {
+                            console.log("Session creation response:", response)
+                            console.log("Checking token...")
+                            
+                            axios.get(`http://localhost:8080/api/users/session/check`)
+                                .then(response => {
+                                    console.log("Check response:", response)
+                                })
+                        })
                 }, (error) => {
                     console.log(error);
                 })
