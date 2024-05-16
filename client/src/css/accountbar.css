@@ -1,3 +1,4 @@
+@import "colors.css";
 .loginInteract {
     margin: 5px;
     list-style: none;
@@ -21,7 +22,8 @@
 }
 
 .loginInteract .loginCred .loginCredLabel {
-    justify-self: left
+    justify-self: left;
+    color:var(--invertedtext);
 }
 
 .loginInteract .loginButton {

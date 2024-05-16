@@ -9,8 +9,9 @@ function logIn() {
         email:document.forms["loginCredentialsEntry"]["loginEmail"].value,
         password:document.forms["loginCredentialsEntry"]["loginPassword"].value,
     }
-    axios.post("http://localhost:8080/login",cred)
-
+    var session = axios.get(`http://localhost:8080/api/users/session/create?iden=${cred.email}&password=${cred.password}`)
+    accountBar();
+    
 
     // if (localStorage.getItem("loginStatus") == null) { //Check for presence of "loginStatus" token in localStorage 
     //     localStorage.setItem("loginStatus", tokenContent) //If "loginStatus" is null, user is not logged in and "loginStatus" is not present. Add it.
@@ -24,12 +25,20 @@ function logIn() {
 }
 
 function logOut() {
-    if (localStorage.getItem("loginStatus")) { //Check for presence of "loginStatus" token in localStorage
-        localStorage.removeItem("loginStatus") //If "loginStatus" is present, user is logged in. "loginStatus" token should be removed to facilitate logout
-        alert("You have been logged out") //Inform the user that they have been logged out
-        window.location = "/" //Send the user to the homepage, as they may be on any page when logging out, and may lose view permissions
-        //Sending user back to homepage is best way to mitigate potential issues 
-    }
+try {
+    axios.delete("http://localhost:8080/api/users/session/expire")
+} catch (error) {
+    alert("beep boop")
+}
+
+
+
+    // if (localStorage.getItem("loginStatus")) { //Check for presence of "loginStatus" token in localStorage
+    //     localStorage.removeItem("loginStatus") //If "loginStatus" is present, user is logged in. "loginStatus" token should be removed to facilitate logout
+    //     alert("You have been logged out") //Inform the user that they have been logged out
+    //     window.location = "/" //Send the user to the homepage, as they may be on any page when logging out, and may lose view permissions
+    //     //Sending user back to homepage is best way to mitigate potential issues 
+    // }
 }
 
 function sendToSignup() {
@@ -41,10 +50,15 @@ function sendToAccount() {
 }
 
 export default function accountBar() {  //Construct accountBar component
-    if (localStorage.getItem("loginStatus")) { //If "loginStatus" token exists, user is logged in and logged in variant of UI should be displayed
+    try{
+        var response = axios.get(`http://localhost:8080/api/users/session/check`)
+    } catch(error) {
+        
+    }
+    if (response.status==200) { //If "loginStatus" token exists, user is logged in and logged in variant of UI should be displayed
         return (
             <div className="loggedinInteract">
-                <li><button onClick={sendToAccount}>My Account</button></li>
+                {/* <li><button onClick={sendToAccount}>My Account</button></li> */}
                 <li><button onClick={logOut}>Log Out</button></li>
             </div>
 
@@ -56,12 +70,12 @@ export default function accountBar() {  //Construct accountBar component
                     <form name="loginCredentialsEntry">
                         <div>
                             <li className="loginCredLabel">Email:</li>
-                            <li className="loginCredEntry"><input type="text" name="loginEmail"></input></li>
+                            <li className="loginCredEntry"><input type="text" name="loginEmail" required></input></li>
 
                         </div>
                         <div>
                             <li className="loginCredLabel">Password:</li>
-                            <li className="loginCredEntry"><input type="password" name="loginPassword"></input></li>
+                            <li className="loginCredEntry"><input type="password" name="loginPassword" required></input></li>
 
                         </div>
                     </form>

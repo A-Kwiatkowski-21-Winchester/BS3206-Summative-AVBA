@@ -6,7 +6,7 @@ import {useEffect} from 'react';
 import DatePicker from 'react-datepicker'; 
 import "react-datepicker/dist/react-datepicker.css"
 
-
+const querystring = require("querystring")
 function formCancel() {
     window.location = "/"
 }
@@ -60,9 +60,9 @@ export default function SignUp() {
         }
     
         if (form["passwordinput"].value == form["confpasswordinput"].value && form["passwordinput"].value != "") {
-            axios.post("http://localhost:8080/signup", accountData)
+            axios.post(`http://localhost:8080/api/users/create?isAdmin=false&firstName=${accountData.firstname}&lastName=${accountData.surname}&title=${accountData.title}&dob=${accountData.dob}&sex=${accountData.sex}&phone=${accountData.phone}&email=${accountData.emailaddress}&postcode=${accountData.postcode}&password=${accountData.password}`)
                 .then((response) => {
-                    console.log(response);
+                    axios.get(`http://localhost:8080/api/users/session/create?id=${response}&password=${accountData.password}`)
                 }, (error) => {
                     console.log(error);
                 })
