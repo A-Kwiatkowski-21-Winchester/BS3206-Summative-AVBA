@@ -1,4 +1,4 @@
-import { Alert } from 'bootstrap';
+
 import './CreateArticle.css';
 import { useState } from 'react';
 
@@ -14,9 +14,14 @@ export default function CreateArticle(){
     async function onSubmit(e){
         e.preventDefault();
 
+        if(title.match(/[0-9]/g) || author.match(/[0-9]/g) ){
+            return alert("Error, no digits are allowed as part of the title or author name")
+        }
 
         const articleDetails = {title, author, date, content}
         
+
+
         const response = await fetch('http://localhost:8080/api/mentalhealth/create',{
             method: 'POST',
             body: JSON.stringify(articleDetails),
