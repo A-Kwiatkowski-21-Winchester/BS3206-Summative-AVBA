@@ -36,6 +36,8 @@ export default function ViewAppointments(){
             console.log(json)
             alert("Success! Appointment Deleted.")
         }
+
+        window.location.reload();
     }
 
     return(
