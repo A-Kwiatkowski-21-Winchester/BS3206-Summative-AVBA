@@ -10,7 +10,7 @@ function logIn() {
         password:document.forms["loginCredentialsEntry"]["loginPassword"].value,
     }
     var session = axios.get(`http://localhost:8080/api/users/session/create?iden=${cred.email}&password=${cred.password}`)
-    accountBar();
+    window.location.reload()
     
 
     // if (localStorage.getItem("loginStatus") == null) { //Check for presence of "loginStatus" token in localStorage 
@@ -52,6 +52,7 @@ function sendToAccount() {
 export default function accountBar() {  //Construct accountBar component
     try{
         var response = axios.get(`http://localhost:8080/api/users/session/check`)
+        console.log(response.status)
     } catch(error) {
         
     }
