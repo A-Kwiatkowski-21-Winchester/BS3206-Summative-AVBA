@@ -402,6 +402,10 @@ async function addUserData(
  * either the identifier matched no users, or the field did not exist.
  */
 async function getUserData(identifier, fieldNames, identifierForm = "_id") {
+    if (isEmpty(identifier))
+        throw new RequestError("ID is required but was not provided.");
+    if (isEmpty(fieldNames))
+        throw new RequestError("One or more fieldNames are required but none were provided.");
     if (identifierForm.match(idRegex)) identifierForm = "_id";
     let validIDForms = ["_id", "email"];
     if (!validIDForms.includes(identifierForm))
