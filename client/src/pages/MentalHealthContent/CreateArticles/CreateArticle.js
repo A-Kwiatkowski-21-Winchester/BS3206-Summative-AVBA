@@ -36,7 +36,7 @@ export default function CreateArticle(){
         }
         if (response.ok){
             console.log(json)
-            alert("Success, article created!")
+            return alert("Success, article created!")
         }
     }
     return(

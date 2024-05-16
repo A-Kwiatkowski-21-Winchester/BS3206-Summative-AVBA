@@ -38,13 +38,19 @@ export default function ViewAllArticles(){
     return(
         <div>
             <h1 className="title">Mental Health Articles</h1>
-            <div className='searchbar'>
-                <input 
-                type='search'
-                placeholder='Search'
-                value={query}
-                onChange={e => setQuery(e.target.value)}/>
-            </div>
+            {
+                showAllArticles?
+                <div className='searchbar'>
+                    <input 
+                    type='search'
+                    placeholder='Search'
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}/>
+                </div>
+                :
+                <div></div>
+            }
+            
 
            
             {
