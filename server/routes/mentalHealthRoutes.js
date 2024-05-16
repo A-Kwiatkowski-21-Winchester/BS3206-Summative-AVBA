@@ -38,14 +38,5 @@ router.get("/", async (_, res) => {
  
 });
 
-// router.get("/filter", async(req, res) => {
-//     dbconnect.generateClient();
-//     dbconnect.openClient();
-
-//     let client = dbconnect.globals.client;
-//     let db = client.db("MentalHealth")
-//     let collection = db.collection("Articles")
-
-// })
 
 module.exports = router
