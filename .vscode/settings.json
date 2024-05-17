@@ -1,0 +1,22 @@
+{
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "cSpell.words": [
+        "AVBA",
+        "dbconnect"
+    ],
+    "eslint.workingDirectories": [
+        "./client",
+        "./server"
+    ],
+    "eslint.experimental.useFlatConfig": true,
+    "javascript.validate.enable": false,
+}

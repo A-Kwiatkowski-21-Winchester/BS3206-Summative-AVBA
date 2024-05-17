@@ -11,6 +11,9 @@
 # production
 /build
 
+# temporary
+/temp
+
 # credentials
 /env/environment.js
 

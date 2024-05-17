@@ -7,13 +7,31 @@ Once the project repository is cloned on your machine, you should open two termi
 > [!TIP]
 > In case of problems with the below commands, see the [Issues](#issues) section.
 
+
 **In Order:**
+### Environment variables (first setup)
+If this is a fresh clone, ensure you review the [Database Interaction Setup](#setup) section to set up your environment variables.
+
+### Easy Run & Debug:
+Both the client and the server can be run from the **Run & Debug** menu in VSCode.
+
+| | | |
+|---|---|---|
+| ![Run Button](readme/run_button.png) | ➔ | ![Run Panel](readme/run_screen.png) | 
+
+#### or, via console:
+
 ### Terminal 1 (Server):
 #### 1. Enter the server directory
 ```
 cd server
 ```
-#### 2. Start the node server
+#### 2. Ensure server dependencies are installed *(optional)*
+(Usually only necessary when freshly cloning the repository or switching into a different branch)
+```
+npm install
+```
+#### 3. Start the node server
 ```
 node index.js
 ```
@@ -25,7 +43,12 @@ You should now see `Server listening on port 8080` in your terminal feed.
 ```
 cd client
 ```
-#### 2. Start the node server
+#### 2. Ensure client dependencies are installed *(optional)*
+(Usually only necessary when freshly cloning the repository or switching into a different branch)
+```
+npm install
+```
+#### 3. Start the node server
 ```
 npm run start
 ```
@@ -71,6 +94,12 @@ Create a copy of the template and rename it to `environment.js` before filling o
 > **Do not modify the template file.** 
 > 
 > This is because `environment.json` is a file that Git will **ignore and not sync** to the repository, to ensure the database login credentials remain secure. The template file ***will* sync**, so it must remain sanitary.
+
+- The `clusterName` variable is already filled out for you.
+
+- The `username` and `password` variables should be filled out using the values you were individually given in group channels.
+
+- The `secretKey` variable should likewise be filled out using the value given in group channels, though this is not individualised and will be global across the whole project.
 
 ### Using the `dbconnect` helper
 

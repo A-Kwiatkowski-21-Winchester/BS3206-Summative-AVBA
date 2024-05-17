@@ -8,9 +8,14 @@ import { home, SignUp, Contact, BmiCalculator, BmiTracker, BmiInformation, Bmite
 import "./css/general.css";
 import logo512 from './devLogo.png'
 import AVBA from './AvbaLogo.png'
+import BookAppointments from './pages/GpAppointments/BookingSystem/BookAppointments';
+import ViewAppointments from './pages/GpAppointments/ViewAppointments/ViewAppointments';
 
 export default function App() {
 
+
+function App() {
+ 
   return (
     <Router>
       <div className="App">
@@ -41,6 +46,13 @@ export default function App() {
           </Route> */}
         </Routes>
       </div>
+     <div>
+      <Routes>
+        <Route path="/" element={<Home/>}/>
+        <Route path="/bookAppointments" element={<BookAppointments />}/>
+        <Route path="/viewAppointments" element={<ViewAppointments />}/>
+      </Routes>
+    </div>
     </Router>
   );
 }
