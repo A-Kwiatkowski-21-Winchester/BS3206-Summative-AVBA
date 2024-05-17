@@ -1,11 +1,13 @@
-
 export default function home(){
+    
+    
+    
     return(
         
-        <div>
-            <h1>Home</h1>
-            <p>PLACEHOLDER TEXT</p>
+        <div id="home">
+            <h1>Welcome To AVBA Health</h1>
+            <p>Your one stop shop for all your health and wellbeing needs</p>
+            
         </div>
     );
-    
 }

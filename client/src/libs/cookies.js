@@ -1,8 +1,8 @@
 import Cookies from "universal-cookie";
 const cookies = new Cookies(null, { path: "/" });
 
-const userIDCookie = "user-id"
-const sessionTokenCookie = "session-token"
+const userIDCookie = "user_id"
+const sessionTokenCookie = "session_token"
 
 /**
  * Gets the user ID stored in the cookie

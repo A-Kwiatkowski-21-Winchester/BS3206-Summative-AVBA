@@ -2,12 +2,12 @@
 :root {
     --text:#000000;
     --invertedtext:#ffffff;
-    --headerbackground:#ceffef;
-    --navbarbackground:#8dd6e9;
-    --navbaritembackground:#7fffd4;
-    --navbaritemborder:#75ecc5;
+    --headerbackground:#015089;
+    --navbarbackground:#015089;
+    --navbaritembackground:#ffffff;
+    --navbaritemborder:#015089;
     --navbaritemactivebackground:#008b8b;
-    --navbaritemactiveborder:#00008b;
+    --navbaritemactiveborder:#015089;
     --navbardropdown:#03a7a7;
     --navbaractivedropdown:#018181;
     --backgroundcolour:#015089;

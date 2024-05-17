@@ -13,39 +13,41 @@ const Navbar = () => {
             These can be updated should another URL be better suited to your page(s). The URL 
             should match that set in the App.js */}
                 <li><NavLink className="navbar-item" activeClassName="is-active" to="/" >Home</NavLink></li>
-                <li><NavLink className="navbar-item" activeClassName="is-active" to="/physical">Physical</NavLink></li>
-                {/* <li><NavLink className="navbar-item" activeClassName="is-active" to="/mental">Mental</NavLink></li>
-                <li><NavLink className="navbar-item" activeClassName="is-active" to="/fitness">Fitness</NavLink></li> */}
-                <li><NavLink className="navbar-item" activeClassName="is-active" to="/contact">Contact Us</NavLink></li>
-                <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmitest">BMI</NavLink></li>
-                <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmiAdults">BMI Adult</NavLink></li>
-                <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmiChildren">BMI Children</NavLink></li>
-                <li><NavLink className="navbar-item" activeClassName="is-active" to="/bookAppointments">Book Appointments</NavLink></li>
-                <li><NavLink className="navbar-item" activeClassName="is-active" to="/viewAppointments">View Appointments</NavLink></li>
 
-                {/* <li>
+                
+                
+                <li>
                 <div className="dropdown-container">
-                    <NavLink className="dropdown-navbar" to="/">Bmi</NavLink>
+                    <NavLink className="dropdown-navbar" to="/bmitest">BMI</NavLink>
                     <div className="dropdown-content">
-                        <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmiInformation">Bmi Information</NavLink></li>
-                        <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmicalc">Bmi Calculator</NavLink></li>
-                        <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmiTracker">Bmi Tracker</NavLink></li>
+                        <li><NavLink activeClassName="is-active" to="/bmiAdults">BMI Adult</NavLink></li>
+                        <li><NavLink activeClassName="is-active" to="/bmiChildren">BMI Children</NavLink></li>
                     </div>
                 </div>
-
-                </li> */}
-                {/* <li>
-                    <div className="dropdown-container">
-                        <NavLink className="dropdown-navbar" to="/">Dropdown</NavLink>
-                        <div className="dropdown-content">
-                            <li>ddd</li>
-                            <li>ccc</li>
-                            <li>bbb</li>
-                        </div>
-
+                </li>
+                <li>
+                <div className="dropdown-container">
+                    <NavLink className="dropdown-navbar">GP Appointments</NavLink>
+                    <div className="dropdown-content">
+                        <li><NavLink activeClassName="is-active" to="/bookAppointments">Book Appointments</NavLink></li>
+                        <li><NavLink activeClassName="is-active" to="/viewAppointments">View Appointments</NavLink></li>
                     </div>
+                </div>
+                </li>
+                <li>
+                <div className="dropdown-container">
+                    <NavLink className="dropdown-navbar">Mental Health</NavLink>
+                    <div className="dropdown-content">
+                        <li><NavLink activeClassName="is-active" to="/mentalView">View Articles</NavLink></li>
+                        <li><NavLink activeClassName="is-active" to="/mentalCreate">Create Articles</NavLink></li>
+                    </div>
+                </div>
+                </li>
 
-                </li> */}
+                
+                <li><NavLink className="navbar-item" activeClassName="is-active" to="/contact">Contact Us</NavLink></li>
+
+            
             </div>
         </nav>
     )

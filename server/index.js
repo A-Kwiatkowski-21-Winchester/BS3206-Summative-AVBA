@@ -1,8 +1,9 @@
 
 require("dotenv").config();
 const cors = require("cors");
+const dbUtil = require("./libs/dbUserUtils");
 const express = require("express");
-const cookieParser = require('cookie-parser')
+const cookieParser = require("cookie-parser");
 
 const userRoutes = require("./routes/users");
 
@@ -13,16 +14,20 @@ const PORT = process.env.PORT || 4000;
 
 const app = express();
 
-app.use(cors());
+app.use(
+    cors({
+        origin: "http://localhost:3000",
+        credentials: true,
+    })
+);
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(function (req, res, next) {
-  console.log("Incoming request for:", req.path)
-  //console.log(req.cookies)
-  next()
-})
-
+    console.log("Incoming request for:", req.path);
+    //console.log(req.cookies)
+    next();
+});
 let env;
 try {
   env = require("./env/environment");
@@ -46,5 +51,5 @@ app.use('/', function(req, res) {
 
 
 app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+    console.log(`Server listening on port ${PORT}`);
 });
