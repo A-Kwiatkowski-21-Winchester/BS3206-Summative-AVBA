@@ -7,6 +7,7 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css"
 import * as querystring from "querystring-es3"
 import { getUserID } from "../libs/cookies";
+import sha256 from "js-sha256"
 
 function formCancel() {
     window.location = "/"
@@ -58,7 +59,7 @@ export default function SignUp() {
             phone: "000000000000",
             email: form["eaddressinput"].value,
             postcode: form["postcodeinput"].value,
-            password: form["passwordinput"].value,
+            password: sha256(form["passwordinput"].value),
             isAdmin: false
     
         }

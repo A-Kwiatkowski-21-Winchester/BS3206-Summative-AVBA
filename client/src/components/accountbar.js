@@ -2,14 +2,14 @@ import axios from "axios";
 import "../css/accountbar.css";
 import React, { useEffect, useState } from 'react';
 import { getToken, getUserID } from "../libs/cookies";
-
+import sha256 from "js-sha256"
 let loggedin = false;
 let tokenContent = "null";
 
 function logIn() {
     var cred = {
         email:document.forms["loginCredentialsEntry"]["loginEmail"].value,
-        password:document.forms["loginCredentialsEntry"]["loginPassword"].value,
+        password:sha256(document.forms["loginCredentialsEntry"]["loginPassword"].value),
     }
     axios.get(`http://localhost:8080/api/users/session/create?iden=${cred.email}&password=${cred.password}`)
     .then(
