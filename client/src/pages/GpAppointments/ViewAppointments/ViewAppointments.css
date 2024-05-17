@@ -31,7 +31,7 @@
     padding: 50px;
 }
 
-.btn{
+.aptbtn{
     font-size: 15px;
     width: 25%;
     height: 15%;
@@ -41,6 +41,6 @@
     margin-top: 10px;
 }
 
-.btn:hover{
+.aptbtn:hover{
     background-color: rgb(214, 218, 247);
 }

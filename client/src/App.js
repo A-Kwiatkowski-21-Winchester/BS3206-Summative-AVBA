@@ -1,7 +1,13 @@
+
+import './App.css';
+import {Route, Routes} from 'react-router-dom';
+import CreateArticle from './pages/MentalHealthContent/CreateArticles/CreateArticle'
+import ViewAllArticles from './pages/MentalHealthContent/ViewArticles/ViewAllArticles';
+
 import "./App.css";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import Navbar from "./components/navbar";
 import AccountBar from "./components/accountbar";
 import {
@@ -20,6 +26,7 @@ import {
 import "./css/general.css";
 import logo512 from "./devLogo.png";
 import AVBA from "./AvbaLogo.png";
+
 
 export default function App() {
     return (
@@ -45,6 +52,8 @@ export default function App() {
                 <Route path="/bmiChildren" element={<BmiChildren />}></Route>
                 <Route path="/bookAppointments" element={<BookAppointments />}></Route>
                 <Route path="/viewAppointments" element={<ViewAppointments />}></Route>
+                <Route path="/mentalHealth" element={<CreateArticle />}></Route>
+                <Route path="/mentalHealthArticles" element={<ViewAllArticles />}></Route>
             </Routes>
         </div>
     );

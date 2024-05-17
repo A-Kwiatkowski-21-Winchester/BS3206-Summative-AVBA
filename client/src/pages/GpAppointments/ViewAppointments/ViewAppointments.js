@@ -52,7 +52,7 @@ export default function ViewAppointments(){
                         <p key={appointment.doctorName}>Doctor: {appointment.doctorName}</p>
                         <p key={appointment.date}>Date: {appointment.date}</p>
                         <p key={appointment.time}>Time: {appointment.time}</p>
-                        <button className="btn" onClick={() => deleteAppointment(appointment._id)}>Cancel</button>
+                        <button className="aptbtn" onClick={() => deleteAppointment(appointment._id)}>Cancel</button>
                     </div>
                 ))}
             </div>
