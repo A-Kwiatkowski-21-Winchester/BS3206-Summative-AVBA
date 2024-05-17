@@ -1,6 +1,12 @@
 const dbUserUtils = require("./dbUserUtils");
 const dbconnect = require("./dbconnect");
-const { describe, expect, test, afterAll } = require("@jest/globals");
+const {
+    describe,
+    expect,
+    test,
+    afterAll,
+    beforeAll,
+} = require("@jest/globals");
 
 // Custom Error
 class TestingError extends Error {
@@ -18,10 +24,15 @@ function shallowClone(obj) {
     return { ...obj };
 }
 
-function checkForTestUser() {
-    if (!validTestUserID)
+/**
+ * Checks for a prerequisite value provided by another test.
+ * If it isn't present, throw a custom TestingError.
+ * @param {obj} value The value to check for the existence of
+ */
+function preReqValue(value) {
+    if (!value)
         throw new TestingError(
-            "This test cannot be run alone - " /*safe*/ +
+            "This test cannot be run alone - " +
                 "it must be run as part of the entire test file"
         );
 }
@@ -41,6 +52,31 @@ const demoUser = {
 };
 
 let validTestUserID;
+let validToken;
+
+let dbConnection = false;
+
+//#region Cleanup - Erasing Test Users
+beforeAll(async () => {
+    const dbconnect = require("./dbconnect");
+
+    dbconnect.generateClient();
+    dbconnect.openClient();
+
+    let pingSuccess = await dbconnect.ping();
+    if (!pingSuccess) {
+        dbconnect.closeClient();
+        console.error("Unable to connect to database.");
+        throw new TestingError(
+            "Unable to connect to database - " +
+                "database tests unable to be carried out"
+        );
+    }
+    console.log("Database connection successful");
+    dbConnection = true;
+    dbconnect.closeClient();
+});
+//#endregion
 
 //#region createUser() tests
 describe("createUser() tests", () => {
@@ -101,7 +137,7 @@ describe("getUserWhole() tests", () => {
     });
 
     test("getUserWhole() with valid identifier", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
 
         let task;
         await expect(
@@ -142,7 +178,7 @@ describe("updateUserWhole() tests", () => {
     });
 
     test("updateUserWhole() with user with valid _id", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
 
         let testUser = shallowClone(demoUser);
         testUser._id = await validTestUserID; //should exist
@@ -192,7 +228,7 @@ describe("addUserData() tests", () => {
     });
 
     test("addUserData() with valid ID", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
 
         await expect(
             dbUserUtils.addUserData(await validTestUserID, "extraData", "test")
@@ -228,7 +264,7 @@ describe("getUserData() tests", () => {
     });
 
     test("getUserData() with non-existent field", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
         let result = await dbUserUtils.getUserData(
             await validTestUserID,
             "someField"
@@ -237,7 +273,7 @@ describe("getUserData() tests", () => {
     });
 
     test("getUserData() with one existent field", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
         let result = await dbUserUtils.getUserData(
             await validTestUserID,
             "extraData"
@@ -246,7 +282,7 @@ describe("getUserData() tests", () => {
     });
 
     test("getUserData() with array of existent fields", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
 
         let fieldArray = ["extraData", "firstName", "lastName"];
         let result = await dbUserUtils.getUserData(
@@ -257,7 +293,7 @@ describe("getUserData() tests", () => {
     });
 
     test("getUserData() with array of fields - one non-existent", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
 
         let fieldArray = [
             "extraData",
@@ -288,7 +324,7 @@ describe("removeUserData() tests", () => {
     });
 
     test("removeUserData() with non-existent field", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
 
         await expect(
             dbUserUtils.removeUserData(await validTestUserID, "someField")
@@ -296,7 +332,7 @@ describe("removeUserData() tests", () => {
     });
 
     test("removeUserData() with existent field", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
 
         await expect(
             dbUserUtils.removeUserData(await validTestUserID, "extraData")
@@ -329,7 +365,7 @@ describe("checkPassword() tests", () => {
     });
 
     test("checkPassword() with correct password", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
 
         await expect(
             dbUserUtils.checkPassword(await validTestUserID, demoUser.password)
@@ -337,7 +373,7 @@ describe("checkPassword() tests", () => {
     });
 
     test("checkPassword() with garbled DB password", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
 
         // * Manually manipulating password so it is garbled and undecryptable *
         dbconnect.generateClient();
@@ -381,7 +417,7 @@ describe("changePassword() tests", () => {
     });
 
     test("changePassword() with existent ID", async () => {
-        checkForTestUser(); // Checks for previously created user
+        preReqValue(validTestUserID); // Checks for previously created user
 
         // Change password
         await expect(
@@ -396,22 +432,51 @@ describe("changePassword() tests", () => {
 });
 //#endregion
 
+//#region createSessionToken() tests
+describe("createSessionToken() tests", () => {
+    test("createSessionToken() with no arguments", async () => {
+        await expect(dbUserUtils.createSessionToken()).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+
+    test("createSessionToken() with no password", async () => {
+        await expect(dbUserUtils.createSessionToken("!!!")).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+
+    test("createSessionToken() with invalid iden (email)", async () => {
+        await expect(dbUserUtils.createSessionToken("!!!", "bork")).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+    
+    test("createSessionToken() with invalid idenForm", async () => {
+        await expect(dbUserUtils.createSessionToken("!!!", "bork", "bakery")).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+});
+//#endregion
+
 // *** Example of conditional expect - best avoided
 // eslint-disable-next-line jest/no-commented-out-tests
-/* test("Deliberate failure", async () => {
+/*
+test("Deliberate failure", async () => {
     expect.assertions(1);
     try {
         await dbUserUtils.getUserData("654613", "field", "smork");
     } catch (error) {
         expect(error.message).toContain("identifier");
     }
-}); */
+});
+*/
 
-//#region Erasing test users
-//ERASE TEST USERS AFTER TESTING
-
+//#region Cleanup - Erasing Test Users
 afterAll(async () => {
-    const dbconnect = require("./dbconnect");
+    if (!dbConnection)
+        return console.log("No DB connected, no cleanup necessary.");
 
     dbconnect.generateClient();
     dbconnect.openClient();
@@ -429,5 +494,4 @@ afterAll(async () => {
     await updatePromise;
     console.log("Test users deleted.");
 });
-
 //#endregion
