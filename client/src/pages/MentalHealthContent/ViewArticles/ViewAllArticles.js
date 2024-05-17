@@ -56,10 +56,9 @@ export default function ViewAllArticles(){
             {
                 showAllArticles? 
                
-                <div className="card">  
-                    
+                <div className="grid">    
                     {filteredArticles.map((article) => (
-                        <div className="cards">
+                        <div className="gridcards">
                             <p key={article._id}>{article.title}</p>
                             <p key={article.author}>By {article.author}</p>
                             {/* <p key={article.date}>Uploaded: {article.date}</p> */}
@@ -69,7 +68,7 @@ export default function ViewAllArticles(){
                 </div>
                 
                 :
-                <div className="Articles">
+                <div className="articles">
                     <h1>{showSelectedArticle.title}</h1>
                     <h2>By {showSelectedArticle.author}</h2>
                     <h5>Created: {showSelectedArticle.date}</h5>

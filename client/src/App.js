@@ -7,7 +7,7 @@ import ViewAllArticles from './pages/MentalHealthContent/ViewArticles/ViewAllArt
 import "./App.css";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import Navbar from "./components/navbar";
 import AccountBar from "./components/accountbar";
 import {

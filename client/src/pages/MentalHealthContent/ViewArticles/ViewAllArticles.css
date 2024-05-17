@@ -1,81 +1,81 @@
-*{
-    font-family: "Poppins", sans-serif;
-    
+* {
+  font-family: "Poppins", sans-serif;
 }
 
-.title{
-    margin-top: 10px;
+.title {
+  margin-top: 10px;
 }
-.container{
-
-    display: block;
-    position: absolute;
-    width: 80%;
-    margin: 10%;
-    border: 2px solid red;
+.container {
+  display: block;
+  position: absolute;
+  width: 80%;
+  margin: 10%;
+  border: 2px solid red;
 }
-.searchbar{
-    display: flex;
-    justify-content: center;
-    
+.searchbar {
+  display: flex;
+  justify-content: center;
 }
-.searchbar input{
-    padding: 10px;
-    width: 20%;
-    margin-top: 20px;
-    border-radius: 10px;
-    border: 2px solid black;
+.searchbar input {
+  padding: 10px;
+  width: 20%;
+  margin-top: 20px;
+  border-radius: 10px;
+  border: 2px solid black;
 }
-.btn{
-    width: 25%;
-    height: 25%;
-    background-color: rgba(255, 255, 255, 0.979);
-    border: 1px solid #015089;
-    border-radius: 10px;
-}
-
-.cards {
-
-    background-color: #015089;
-    border: 1px solid #015089;
-    padding: 20px;
-    font-size: 30px;
-    text-align: center;
-    border-radius: 20px;
-    color: #ffffff;
-}
-       
-.card {
-    display: grid;
-    grid-template-columns: 31% 31% 31%;
-    column-gap: 50px;
-    row-gap: 50px;
-    padding: 50px;
-    
+.btn {
+  width: 25%;
+  height: 25%;
+  background-color: rgba(255, 255, 255, 0.979);
+  border: 1px solid #015089;
+  border-radius: 10px;
+  display: block;
+  margin: auto;
 }
 
-.Articles{
-    padding: 50px;
-    margin: auto;
-    width: 70%;
-    display: block;
+
+.grid {
+  display: grid;
+  grid-template-columns: 31% 31% 31%;
+  column-gap: 50px;
+  row-gap: 50px;
+  padding: 50px;
+  text-align: center;
 }
 
-.Articles p, h5, h2{
-    padding-top: 10px;
+.gridcards {
+  background-color: #015089;
+  border: 1px solid #015089;
+  padding: 20px;
+  font-size: 30px;
+  text-align: center;
+  border-radius: 20px;
+  color: #ffffff;
+}
+.articles {
+  padding: 50px;
+  margin: auto;
+  width: 70%;
+  display: block;
 }
 
-.Articles .btn{
-    background-color: #015089;
-    color: #ffffff;
-    width: 15%;
-    padding: 5px;
-    font-size: 20px;
-    display: block;
-    margin: auto;
-    margin-top: 30px;
+.articles p,
+h5,
+h2 {
+  padding-top: 10px;
 }
 
- .btn:hover{
-    background-color: rgb(214, 218, 247);
+.articles .btn {
+  background-color: #015089;
+  color: #ffffff;
+  width: 15%;
+  padding: 5px;
+  font-size: 20px;
+  display: block;
+  margin: auto;
+  margin-top: 30px;
+}
+
+.btn:hover {
+  background-color: rgb(214, 218, 247);
 }
