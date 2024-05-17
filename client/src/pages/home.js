@@ -1,12 +1,19 @@
-import React from "react";
 
-const Home = () => (
-    <div>
-        <h1>Home Page</h1>
-        <p>
-            homepage text homepage text homepage text homepage text
-        </p>
-    </div>
-);
-
-export default Home;
+export default function Home(){
+    return(
+        
+        <div>
+            <h1>Home</h1>
+            <ul>
+                <div>
+                    <a href="/bookAppointments">Book Appointment</a>
+                </div>
+                <div>
+                    <a href="/viewAppointments">View Appointment</a>
+                </div>
+               
+            </ul>
+        </div>
+    );
+    
+}
