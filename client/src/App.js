@@ -1,3 +1,4 @@
+
 import './App.css';
 import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -7,17 +8,13 @@ import { Home, SignUp, Contact } from './pages/pageindex';
 import "./css/general.css";
 import logo512 from './devLogo.png'
 
-axios.defaults.withCredentials = true;
-
 export default function App() {
-
-
 
   return (
     <Router>
       <div className="App">
         <div className="pageHead"><img src={logo512} alt="testimage" className="headerLogo" /><AccountBar/></div>
-    
+
         
         <Navbar />
         <Routes>
@@ -30,7 +27,7 @@ export default function App() {
         </Routes>
       </div>
     </Router>
-  );
+  )
 }
 
 //Hello World

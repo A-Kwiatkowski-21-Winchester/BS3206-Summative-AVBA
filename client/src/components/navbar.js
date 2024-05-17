@@ -14,10 +14,27 @@ const Navbar = () => {
             should match that set in the App.js */}
                 <li><NavLink className="navbar-item" activeClassName="is-active" to="/" >Home</NavLink></li>
                 <li><NavLink className="navbar-item" activeClassName="is-active" to="/physical">Physical</NavLink></li>
-                <li><NavLink className="navbar-item" activeClassName="is-active" to="/mental">Mental</NavLink></li>
-                <li><NavLink className="navbar-item" activeClassName="is-active" to="/fitness">Fitness</NavLink></li>
+                {/* <li><NavLink className="navbar-item" activeClassName="is-active" to="/mental">Mental</NavLink></li>
+                <li><NavLink className="navbar-item" activeClassName="is-active" to="/fitness">Fitness</NavLink></li> */}
                 <li><NavLink className="navbar-item" activeClassName="is-active" to="/contact">Contact Us</NavLink></li>
-                <li>
+                <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmitest">BMI</NavLink></li>
+                <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmiAdults">BMI Adult</NavLink></li>
+                <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmiChildren">BMI Children</NavLink></li>
+                <li><NavLink className="navbar-item" activeClassName="is-active" to="/bookAppointments">Book Appointments</NavLink></li>
+                <li><NavLink className="navbar-item" activeClassName="is-active" to="/viewAppointments">View Appointments</NavLink></li>
+
+                {/* <li>
+                <div className="dropdown-container">
+                    <NavLink className="dropdown-navbar" to="/">Bmi</NavLink>
+                    <div className="dropdown-content">
+                        <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmiInformation">Bmi Information</NavLink></li>
+                        <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmicalc">Bmi Calculator</NavLink></li>
+                        <li><NavLink className="navbar-item" activeClassName="is-active" to="/bmiTracker">Bmi Tracker</NavLink></li>
+                    </div>
+                </div>
+
+                </li> */}
+                {/* <li>
                     <div className="dropdown-container">
                         <NavLink className="dropdown-navbar" to="/">Dropdown</NavLink>
                         <div className="dropdown-content">
@@ -28,7 +45,7 @@ const Navbar = () => {
 
                     </div>
 
-                </li>
+                </li> */}
             </div>
         </nav>
     )

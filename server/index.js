@@ -1,3 +1,4 @@
+
 require("dotenv").config();
 const cors = require("cors");
 const dbUtil = require("./libs/dbUserUtils");
@@ -6,8 +7,9 @@ const cookieParser = require("cookie-parser");
 
 const userRoutes = require("./routes/users");
 
+const bmiroutes = require('./routes/bmiroutes')
 const appointmentRoutes = require("./routes/appointments");
-
+const mentalHealthRoutes = require("./routes/mentalHealthRoutes")
 const PORT = process.env.PORT || 4000;
 
 const app = express();
@@ -35,13 +37,17 @@ try {
   );
 }
 
+
 //routes
-app.use("/api/users", userRoutes);
+app.use('/api/bmi', bmiroutes)
+app.use('/api/users', userRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/mentalhealth', mentalHealthRoutes)
 // Default route
 app.use('/', function(req, res) {
   res.status(404).send("Page not found (invalid URL)")
 });
+
 
 
 app.listen(PORT, () => {

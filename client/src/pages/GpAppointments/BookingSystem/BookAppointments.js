@@ -14,6 +14,14 @@ export default function BookAppointments(){
     async function onSubmit(e){
         e.preventDefault();
 
+        if(patientName.match(/[0-9]/g) || doctorName.match(/[0-9]/g) ){
+            return alert("Error, no digits are allowed as part of the patient or doctor name")
+        }
+
+        if (!healthNumber.match(/^[0-9]+$/)){
+            return alert("Error, health number should be digits only")
+        }
+
         const appointmentDetails = {patientName, healthNumber, doctorName, date, time}
         
         const response = await fetch('http://localhost:8080/api/appointments/create',{
