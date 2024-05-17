@@ -1,0 +1,29 @@
+
+
+.contactForm{
+    list-style:none;
+}
+
+
+.contactForm .formInput{
+    max-width:20vw;
+    margin-left:auto;
+    margin-right:auto;
+}   
+
+.contactForm .formLabel{
+    display:flex;
+}
+
+.contactForm .formEntry{
+    display:flex;
+    margin-bottom:10px
+}
+
+textarea{
+    resize:none;
+}
+
+.formButton{
+    min-width:5vw;
+}

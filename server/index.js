@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser')
 
 const userRoutes = require("./routes/users");
 
+const bmiroutes = require('./routes/bmiroutes')
 const appointmentRoutes = require("./routes/appointments");
 
 const PORT = process.env.PORT || 4000;
@@ -12,6 +13,7 @@ const PORT = process.env.PORT || 4000;
 const app = express();
 
 app.use(cors());
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -20,6 +22,7 @@ app.use(function (req, res, next) {
   //console.log(req.cookies)
   next()
 })
+
 let env;
 try {
   env = require("./env/environment");
@@ -30,6 +33,7 @@ try {
 }
 
 //routes
+app.use('/api/bmi', bmiroutes)
 app.use('/api/users', userRoutes);
 app.use('/api/appointments', appointmentRoutes);
 // Default route
