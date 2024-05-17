@@ -23,7 +23,7 @@
   border-radius: 10px;
   border: 2px solid black;
 }
-.btn {
+.gridbtn {
   width: 25%;
   height: 25%;
   background-color: rgba(255, 255, 255, 0.979);
@@ -65,8 +65,9 @@ h2 {
   padding-top: 10px;
 }
 
-.articles .btn {
+.articles .articlebtn {
   background-color: #015089;
+  border-radius: 10px;
   color: #ffffff;
   width: 15%;
   padding: 5px;
@@ -76,6 +77,9 @@ h2 {
   margin-top: 30px;
 }
 
-.btn:hover {
+.articlebtn:hover {
+  background-color: rgb(214, 218, 247);
+}
+.gridbtn:hover {
   background-color: rgb(214, 218, 247);
 }

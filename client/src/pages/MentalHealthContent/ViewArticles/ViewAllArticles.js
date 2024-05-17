@@ -62,7 +62,7 @@ export default function ViewAllArticles(){
                             <p key={article._id}>{article.title}</p>
                             <p key={article.author}>By {article.author}</p>
                             {/* <p key={article.date}>Uploaded: {article.date}</p> */}
-                            <button className="btn" onClick={() => ViewArticle(article.title, article.author, article.date, article.content)} >Read More</button>
+                            <button className="gridbtn" onClick={() => ViewArticle(article.title, article.author, article.date, article.content)} >Read More</button>
                         </div>
                     ))}
                 </div>
@@ -73,7 +73,7 @@ export default function ViewAllArticles(){
                     <h2>By {showSelectedArticle.author}</h2>
                     <h5>Created: {showSelectedArticle.date}</h5>
                     <p className="content">{showSelectedArticle.content}</p>
-                    <button className ="btn" onClick={returnToAllArticles}>Back</button>
+                    <button className ="articlebtn" onClick={returnToAllArticles}>Back</button>
                 </div>
                
 
