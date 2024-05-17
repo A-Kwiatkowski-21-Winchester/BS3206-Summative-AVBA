@@ -4,13 +4,13 @@ import { Link } from "react-router-dom";
 import { getUserID } from "../libs/cookies";
 
 function BmiAdults() {
-    const [loggedIn, setLoggedIn] = useState(false); // State to track user login status
+    // const [loggedIn, setLoggedIn] = useState(false); // State to track user login status
 
-    // Function to check if user is logged in (you can replace this with your actual authentication logic)
-    useEffect(() => {
-        // Simulate checking if user is logged in
-        setLoggedIn(!!getUserID()); // Convert truth/false value to boolean
-    }, []);
+    // // Function to check if user is logged in (you can replace this with your actual authentication logic)
+    // useEffect(() => {
+    //     // Simulate checking if user is logged in
+    //     setLoggedIn(!!getUserID()); // Convert truth/false value to boolean
+    // }, []);
 
 
     // Function to toggle the visibility of the additional information
@@ -22,12 +22,14 @@ function BmiAdults() {
     const [showInfo, setShowInfo] = useState(false);
     const [weight, setWeight] = useState();
     const [height, setHeight] = useState();
-    const [gender, setGender] = useState('');
     const [feet, setFeet] = useState();
     const [inches, setInches] = useState();
+    const [pound, setPound] = useState();
+    const [ounces, setOunces] = useState();
     const [bmi, setBmi] = useState();
     const [msg, setMsg] = useState('');
     const [weightSystem, setWeightSystem] = useState('metric'); // Default to metric
+    const [gender, setGender] = useState('');
 
     // Function to clear all input fields
     const resetFields = () => {
@@ -36,6 +38,8 @@ function BmiAdults() {
         setGender('');
         setFeet('');
         setInches('');
+        setPound('');
+        setOunces('');
         setBmi('');
         setMsg('');
     };
@@ -43,15 +47,17 @@ function BmiAdults() {
     async function saveData(e){
         e.preventDefault();
         // Check if the user is logged in before saving data
-        if (!loggedIn) {
-            alert("You need to be logged in to save data.");
-            return;
-        }
+        // if (!loggedIn) {
+        //     alert("You need to be logged in to save data.");
+        //     return;
+        // }
         const bmiDetails = {
             weight,
             height,
-            // feet,
-            // inches,
+            feet,
+            inches,
+            pound,
+            ounces,
             bmi
         }
         
@@ -69,22 +75,29 @@ function BmiAdults() {
     }
 
     useEffect(() => {
-        if (!weight || (!height && (!feet || !inches))) {
+        // if (!weight || (!height && (!feet || !inches))) 
+            if ((!weight || !height) && (!weight || (!feet || !inches))) {
             setBmi(null);
             setMsg('');
+            console.log("value is incomplete")
             return;
         }
 
+
+
+
         let bmiFormula;
         if (weightSystem === 'metric') {
-            const heightInMeters = height / 100;
-            bmiFormula = weight / (heightInMeters * heightInMeters);
+            const heightInCentimeters = height / 100;
+            bmiFormula = weight / (heightInCentimeters * heightInCentimeters);
         } else {
             const heightInInches = feet * 12 + inches;
             bmiFormula = (weight / (heightInInches * heightInInches)) * 703;
         }
 
-        const calculatedBmi = bmiFormula.toFixed(2);
+        //weight (lb) ÷ height*2 (inches) * 703
+
+        const calculatedBmi = bmiFormula.toFixed(1);
         setBmi(calculatedBmi);
 
         if (calculatedBmi < 18.5) {
@@ -96,7 +109,7 @@ function BmiAdults() {
         } else {
             setMsg("You're Obese");
         }
-    }, [weight, height, feet, inches, weightSystem]);
+    }, [weight, height, feet, inches, pound, ounces, weightSystem]);
 
     return (
         <div className="bmiPage">
@@ -227,7 +240,7 @@ function BmiAdults() {
                    
                     <div>
                         <button className={`bttn ${weightSystem === "metric" ? "" : "inactive"}`} onClick={() => setWeightSystem("metric")}>Metric (kg, cm)</button>
-                        <button className={`bttn ${weightSystem === "imperial" ? "" : "inactive"}`} onClick={() => setWeightSystem("imperial")}>Imperial (lbs, feet/in)</button>
+                        <button className={`bttn ${weightSystem === "imperial" ? "" : "inactive"}`} onClick={() => setWeightSystem("imperial")}>Imperial (lbs, ft)</button>
                     </div>
 
                     {weightSystem === 'metric' ? (
@@ -260,8 +273,14 @@ function BmiAdults() {
                         
                         <div>
                             <label className="labels">Weight (lbs):</label><br />
-                            <input className="bmi-input" type="number" placeholder="" value={weight} onChange={(e)=>setWeight(e.target.value)}/>
+                            <input className="bmi-input" type="number" placeholder="" value={pound} onChange={(e)=>setPound(e.target.value)}/>
                         </div>
+                        <hr className="divider" /> {/* Grey line divider after height input */}
+                        
+                        {/* <div>
+                            <label className="labels">Weight (oz):</label><br />
+                            <input className="bmi-input" type="number" placeholder="" value={[ounces]} onChange={(e)=>setOunces(e.target.value)}/>
+                        </div> */}
                     </>
                 )}
                     <div className="result">

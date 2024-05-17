@@ -32,6 +32,8 @@ function BmiChildren() {
     const [year, setYear] = useState();
     const [feet, setFeet] = useState();
     const [inches, setInches] = useState();
+    const [pound, setPound] = useState();
+    const [ounces, setOunces] = useState();
     const [bmi, setBmi] = useState();
     const [msg, setMsg] = useState('');
     const [weightSystem, setWeightSystem] = useState('metric'); // Default to metric
@@ -47,6 +49,8 @@ function BmiChildren() {
         setGender('');
         setFeet('');
         setInches('');
+        setPound('');
+        setOunces('');
         setBmi('');
         setMsg('');
     };
@@ -61,8 +65,11 @@ function BmiChildren() {
         const bmiDetails = {
             weight,
             height,
-            // feet,
-            // inches,
+            feet,
+            inches,
+            pound,
+            ounces,
+            gender,
             bmi
         }
         
@@ -88,14 +95,14 @@ function BmiChildren() {
 
         let bmiFormula;
         if (weightSystem === 'metric') {
-            const heightInMeters = height / 100;
-            bmiFormula = weight / (heightInMeters * heightInMeters);
+            const heightInCentimeters = height / 100;
+            bmiFormula = weight / (heightInCentimeters * heightInCentimeters);
         } else {
-            const heightInInches = feet * 12 + inches;
-            bmiFormula = (weight / (heightInInches * heightInInches)) * 703;
+            const heightInFeet = feet * 12 + inches;
+            bmiFormula = (weight / (heightInFeet * heightInFeet)) * 703;
         }
 
-        const calculatedBmi = bmiFormula.toFixed(2);
+        const calculatedBmi = bmiFormula.toFixed(1);
         setBmi(calculatedBmi);
 
         if (calculatedBmi < 18.5) {
@@ -107,7 +114,7 @@ function BmiChildren() {
         } else {
             setMsg("You're Obese");
         }
-    }, [weight, height, feet, inches, weightSystem]);
+    }, [weight, height, feet, inches, pound, ounces, weightSystem]);
 
 
     return (
@@ -200,7 +207,7 @@ function BmiChildren() {
 
                     <div>
                         <button className={`bttn ${weightSystem === "metric" ? "" : "inactive"}`} onClick={() => setWeightSystem("metric")}>Metric (kg, cm)</button>
-                        <button className={`bttn ${weightSystem === "imperial" ? "" : "inactive"}`} onClick={() => setWeightSystem("imperial")}>Imperial (lbs, feet/in)</button>
+                        <button className={`bttn ${weightSystem === "imperial" ? "" : "inactive"}`} onClick={() => setWeightSystem("imperial")}>Imperial (lbs, ft)</button>
                     </div>
 
 
@@ -231,10 +238,16 @@ function BmiChildren() {
                             <input className="bmi-input" type="number" placeholder="" value={inches} onChange={(e)=>setInches(e.target.value)} />
                         </div>
                         <hr className="divider" /> {/* Grey line divider after height input */}
-                        
+
                         <div>
                             <label className="labels">Weight (lbs):</label><br />
-                            <input className="bmi-input" type="number" placeholder="" value={weight} onChange={(e)=>setWeight(e.target.value)}/>
+                            <input className="bmi-input" type="number" placeholder="" value={pound} onChange={(e)=>setPound(e.target.value)}/>
+                        </div>
+                        <hr className="divider" /> {/* Grey line divider after height input */}
+                        
+                        <div>
+                            <label className="labels">Weight (oz):</label><br />
+                            <input className="bmi-input" type="number" placeholder="" value={[ounces]} onChange={(e)=>setOunces(e.target.value)}/>
                         </div>
                     </>
                 )}
