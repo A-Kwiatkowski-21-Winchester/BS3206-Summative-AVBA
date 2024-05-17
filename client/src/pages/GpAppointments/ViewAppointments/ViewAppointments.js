@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-key */
 
 import "./ViewAppointments.css"
 import {useEffect, useState} from 'react'

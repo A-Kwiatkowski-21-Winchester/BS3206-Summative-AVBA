@@ -87,20 +87,27 @@ function BmiChildren() {
     }
 
     useEffect(() => {
-        if (!weight || (!height && (!feet || !inches))) {
+        /* if (!weight || (!height && (!feet || !inches))) {
             setBmi(null);
             setMsg('');
             return;
-        }
+        } */
 
         let bmiFormula;
         if (weightSystem === 'metric') {
             const heightInCentimeters = height / 100;
+            console.log("Height:", heightInCentimeters)
             bmiFormula = weight / (heightInCentimeters * heightInCentimeters);
+            console.log("BMI:", bmiFormula)
         } else {
-            const heightInFeet = feet * 12 + inches;
-            bmiFormula = (weight / (heightInFeet * heightInFeet)) * 703;
+            const heightInInches = (parseFloat(feet) * 12) + parseFloat(inches);
+            console.log("Height:", heightInInches)
+            console.log("Weight:", pound)
+            bmiFormula = (pound / (heightInInches * heightInInches)) * 703;
+            console.log("BMI:", bmiFormula)
         }
+
+        //weight (lb) ÷ height*2 (inches) * 703
 
         const calculatedBmi = bmiFormula.toFixed(1);
         setBmi(calculatedBmi);
@@ -111,7 +118,7 @@ function BmiChildren() {
             setMsg("You're Healthy");
         } else if (calculatedBmi >= 23 && calculatedBmi < 27.5) {
             setMsg("You're Overweight");
-        } else {
+        } else if (calculatedBmi > 27.5) {
             setMsg("You're Obese");
         }
     }, [weight, height, feet, inches, pound, ounces, weightSystem]);
@@ -121,7 +128,7 @@ function BmiChildren() {
         <div className="bmiPage">
              <p>
                {" "}
-                <a href="/bmitest" class="button">Go back</a>
+                <a href="/bmitest" className="button">Go back</a>
             </p>
 
             <h1>Calculate your body mass index (BMI) for children and teenagers</h1>
@@ -325,7 +332,7 @@ function BmiChildren() {
 
                     <div className="result">
                         {/* <h3>Age: {age}</h3> */}
-                        <h3>Your BMI is: {bmi}</h3>
+                        <h3>Your BMI is: {isNaN(bmi) ? " " : bmi}</h3>
                         <p className="p_msg">{msg}</p>
                      </div>
                    

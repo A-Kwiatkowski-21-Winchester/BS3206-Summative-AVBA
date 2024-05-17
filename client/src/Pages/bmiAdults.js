@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import "../css/bmi.css";
 import { Link } from "react-router-dom";
 import { getUserID } from "../libs/cookies";
+import Bmi from "./bmiHome";
 
 function BmiAdults() {
-    // const [loggedIn, setLoggedIn] = useState(false); // State to track user login status
+    const [loggedIn, setLoggedIn] = useState(false); // State to track user login status
 
     // // Function to check if user is logged in (you can replace this with your actual authentication logic)
     // useEffect(() => {
@@ -26,7 +27,7 @@ function BmiAdults() {
     const [inches, setInches] = useState();
     const [pound, setPound] = useState();
     const [ounces, setOunces] = useState();
-    const [bmi, setBmi] = useState();
+    const [bmi, setBmi] = useState(NaN);
     const [msg, setMsg] = useState('');
     const [weightSystem, setWeightSystem] = useState('metric'); // Default to metric
     const [gender, setGender] = useState('');
@@ -47,10 +48,10 @@ function BmiAdults() {
     async function saveData(e){
         e.preventDefault();
         // Check if the user is logged in before saving data
-        // if (!loggedIn) {
-        //     alert("You need to be logged in to save data.");
-        //     return;
-        // }
+        if (!loggedIn) {
+            alert("You need to be logged in to save data.");
+            return;
+        }
         const bmiDetails = {
             weight,
             height,
@@ -75,24 +76,25 @@ function BmiAdults() {
     }
 
     useEffect(() => {
-        // if (!weight || (!height && (!feet || !inches))) 
-            if ((!weight || !height) && (!weight || (!feet || !inches))) {
+/*         if (!weight || (!height && (!feet || !inches))) {
             setBmi(null);
             setMsg('');
             console.log("value is incomplete")
             return;
-        }
-
-
-
+        } */
 
         let bmiFormula;
         if (weightSystem === 'metric') {
             const heightInCentimeters = height / 100;
+            console.log("Height:", heightInCentimeters)
             bmiFormula = weight / (heightInCentimeters * heightInCentimeters);
+            console.log("BMI:", bmiFormula)
         } else {
-            const heightInInches = feet * 12 + inches;
-            bmiFormula = (weight / (heightInInches * heightInInches)) * 703;
+            const heightInInches = (parseFloat(feet) * 12) + parseFloat(inches);
+            console.log("Height:", heightInInches)
+            console.log("Weight:", pound)
+            bmiFormula = (pound / (heightInInches * heightInInches)) * 703;
+            console.log("BMI:", bmiFormula)
         }
 
         //weight (lb) ÷ height*2 (inches) * 703
@@ -106,7 +108,7 @@ function BmiAdults() {
             setMsg("You're Healthy");
         } else if (calculatedBmi >= 23 && calculatedBmi < 27.5) {
             setMsg("You're Overweight");
-        } else {
+        } else if (calculatedBmi > 27.5) {
             setMsg("You're Obese");
         }
     }, [weight, height, feet, inches, pound, ounces, weightSystem]);
@@ -285,7 +287,7 @@ function BmiAdults() {
                 )}
                     <div className="result">
                         {/* <h3>Age: {age}</h3> */}
-                        <h3>Your BMI is: {bmi}</h3>
+                        <h3>Your BMI is: {isNaN(bmi) ? " " : bmi}</h3>
                         <p className="p_msg">{msg}</p>
                      </div>
 
