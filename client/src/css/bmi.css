@@ -45,6 +45,13 @@ body {
     border: 2px solid white; /* Add border when clicked */
 }
 
+.p_msg{
+    text-align: center;
+}
+
+.result{
+    text-align: center;
+}
 
 .bmiPage {
     max-width: 960px; 
@@ -174,3 +181,54 @@ ul {
     color: #fff; /* Set text color when selected */
 }
 
+  
+.bmi-card {
+    text-align: center;
+}
+
+.bmi-scale h4 {
+    font-size: 0.75rem;
+    color: black;
+  }
+
+  
+.bmi-scale div {
+    flex: 1;
+    text-align: center;
+    text-transform: uppercase;
+    border-top: 5px solid var(--color);
+    padding: 10px;
+  }
+  
+.bmi-scale {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.line {
+    width: 100%;
+    height: 5px;
+    background-color: transparent; /* Default color */
+}
+
+.underweight .line {
+    background-color: orange;
+}
+
+.healthy .line {
+    background-color: green;
+}
+
+.overweight .line {
+    background-color: pink;
+}
+
+.obese .line {
+    background-color: red;
+}
+
+.bold {
+    font-weight: bold;
+}
+ 

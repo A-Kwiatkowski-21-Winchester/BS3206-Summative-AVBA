@@ -38,6 +38,7 @@ function BmiChildren() {
     const [msg, setMsg] = useState('');
     const [weightSystem, setWeightSystem] = useState('metric'); // Default to metric
     const [gender, setGender] = useState('');
+    const [bmiCategory, setBmiCategory] = useState('');
 
      // Function to clear all input fields
      const resetFields = () => {
@@ -94,6 +95,7 @@ function BmiChildren() {
         } */
 
         let bmiFormula;
+        let category = '';
         if (weightSystem === 'metric') {
             const heightInCentimeters = height / 100;
             console.log("Height:", heightInCentimeters)
@@ -113,14 +115,16 @@ function BmiChildren() {
         setBmi(calculatedBmi);
 
         if (calculatedBmi < 18.5) {
-            setMsg("You're Underweight");
+            category = "Underweight";
         } else if (calculatedBmi >= 18.5 && calculatedBmi < 23) {
-            setMsg("You're Healthy");
+            category = "Healthy";
         } else if (calculatedBmi >= 23 && calculatedBmi < 27.5) {
-            setMsg("You're Overweight");
-        } else if (calculatedBmi > 27.5) {
-            setMsg("You're Obese");
+            category = "Overweight";
+        } else if (calculatedBmi >= 27.5) {
+            category = "Obese";
         }
+
+        setBmiCategory(category);
     }, [weight, height, feet, inches, pound, ounces, weightSystem]);
 
 
@@ -132,7 +136,7 @@ function BmiChildren() {
             </p>
 
             <h1>Calculate your body mass index (BMI) for children and teenagers</h1>
-            {/* Add BMI calculator form specific for adults */}
+            <br/>
 
             <p>
                 Use this service to:
@@ -147,13 +151,17 @@ function BmiChildren() {
             <p>
                 This tool should not be used to make any symptom diagnoses. Get in touch with your GP or neighbourhood chemist if you're concerned about your weight.
             </p>
+            <br/>
 
             <h2>
                 Who can not use the tool
             </h2>
+
+            <br/>
             <p>
                 You are not permitted to use this tool if you, or the person you are using it for fall into these catergories:
             </p>
+            <br/>
 
             <ul>
                 <li>are over the age of 18</li>
@@ -173,7 +181,8 @@ function BmiChildren() {
                     </div>
 
             <br />
-            <h2>How your BMIis calculated</h2>
+            <h2>How your BMI is calculated</h2>
+            <br/>
             <p>
                 A child or teenager's BMI is shown as a "centile". 
                 The centile result is shown as a percentage of how their BMI compares with other children or teenagers of the same age and sex.
@@ -181,10 +190,13 @@ function BmiChildren() {
             <p>
                 For example, a girl on the 75th centile is heavier than 75 out of 100 other girls her age.
             </p>
+
+            <br/>
             <p>
                 The BMI calculator works out if a child or teenager may be:
             </p>
 
+            <br/>
             <ul>
                 <li>underweight – on the 2nd centile or below</li>
                 <li>a healthy weight – between the 2nd and 91st centiles</li>
@@ -192,12 +204,15 @@ function BmiChildren() {
                 <li>very overweight – 98th centile or above</li>
             </ul>
 
+            <br/>
             <p>
                 The BMI calculation does not include muscle mass, which weighs more than fat.
             </p>
 
             <br />
             <h2>Next steps</h2>
+
+            <br/>
             <p>
                 Overweight children are more likely to become overweight as adults. 
                 This could lead to long-term health conditions.
@@ -206,65 +221,61 @@ function BmiChildren() {
                 See a GP if you're concerned about your or your child's weight. 
                 They may be able to refer you to your local healthy lifestyle programme for children, young people and families.
             </p>
+            <br/> 
+
             <div className="parentContainer">
                 <div className="childBmi">
                     <h2>
-                        BMI calculator for children and teenagers
+                        BMI calculator for adults
                     </h2>
-
+                   
                     <div>
                         <button className={`bttn ${weightSystem === "metric" ? "" : "inactive"}`} onClick={() => setWeightSystem("metric")}>Metric (kg, cm)</button>
                         <button className={`bttn ${weightSystem === "imperial" ? "" : "inactive"}`} onClick={() => setWeightSystem("imperial")}>Imperial (lbs, ft)</button>
                     </div>
 
-
                     {weightSystem === 'metric' ? (
-                    <>
-                        <div>
-                            <label className="labels">Height (cm):</label><br />
-                            <input className="bmi-input" type="number" placeholder=""  onChange={(e)=>setHeight(e.target.value)} value={height} />
-                        </div>
-                        <hr className="divider" /> {/* Grey line divider after height input */}
+                        <>
+                            <div>
+                                <label className="labels">Height (cm):</label><br />
+                                <input className="bmi-input" type="number" placeholder=""  onChange={(e)=>setHeight(e.target.value)} value={height} />
+                            </div>
+                            <hr className="divider" /> {/* Grey line divider after height input */}
 
-                        <div>
-                            <label className="labels">Weight (kg):</label><br />
-                            <input className="bmi-input" type="number" placeholder=""  onChange={(e)=>setWeight(e.target.value)} value={weight}/>
-                        </div>
-                        <hr className="divider" /> {/* Grey line divider after height input */}
-                    </>
-                ) : (
-                    <>
-                        <div>
-                            <label className="labels">Height (ft):</label><br />
-                            <input className="bmi-input" type="number" placeholder="" value={feet} onChange={(e)=>setFeet(e.target.value)} />
-                        </div>
-                        <hr className="divider" /> {/* Grey line divider after height input */}
+                            <div>
+                                <label className="labels">Weight (kg):</label><br />
+                                <input className="bmi-input" type="number" placeholder=""  onChange={(e)=>setWeight(e.target.value)} value={weight}/>
+                            </div>
+                            <hr className="divider" /> {/* Grey line divider after height input */}
+                        </>
+                    ) : (
+                        <>
+                            <div>
+                                <label className="labels">Height (ft):</label><br />
+                                <input className="bmi-input" type="number" placeholder="" value={feet} onChange={(e)=>setFeet(e.target.value)} />
+                            </div>
+                            <hr className="divider" /> {/* Grey line divider after height input */}
 
-                        <div>
-                            <label className="labels">Height (in):</label><br />
-                            <input className="bmi-input" type="number" placeholder="" value={inches} onChange={(e)=>setInches(e.target.value)} />
-                        </div>
-                        <hr className="divider" /> {/* Grey line divider after height input */}
+                            <div>
+                                <label className="labels">Height (in):</label><br />
+                                <input className="bmi-input" type="number" placeholder="" value={inches} onChange={(e)=>setInches(e.target.value)} />
+                            </div>
+                            <hr className="divider" /> {/* Grey line divider after height input */}
+                            
+                            <div>
+                                <label className="labels">Weight (lbs):</label><br />
+                                <input className="bmi-input" type="number" placeholder="" value={pound} onChange={(e)=>setPound(e.target.value)}/>
+                            </div>
+                            <hr className="divider" /> {/* Grey line divider after height input */}
+                        </>
+                    )}
 
-                        <div>
-                            <label className="labels">Weight (lbs):</label><br />
-                            <input className="bmi-input" type="number" placeholder="" value={pound} onChange={(e)=>setPound(e.target.value)}/>
-                        </div>
-                        <hr className="divider" /> {/* Grey line divider after height input */}
-                        
-                        <div>
-                            <label className="labels">Weight (oz):</label><br />
-                            <input className="bmi-input" type="number" placeholder="" value={[ounces]} onChange={(e)=>setOunces(e.target.value)}/>
-                        </div>
-                    </>
-                )}
-                    <hr className="divider" /> {/* Grey line divider after weight input */}
-
+                    
                     <h3>
                         Date of birth
                     </h3>
                     <p>
-                        For example, 12 05 2015
+                        For example: 12 05 2015
                     </p>
 
                     {/* Additional information dropdown */}
@@ -331,20 +342,79 @@ function BmiChildren() {
                     <hr className="divider" /> {/* Grey line divider after weight input */}
 
                     <div className="result">
-                        {/* <h3>Age: {age}</h3> */}
+                        {/* Display BMI and message */}
                         <h3>Your BMI is: {isNaN(bmi) ? " " : bmi}</h3>
                         <p className="p_msg">{msg}</p>
-                     </div>
-                   
-                    <div>
+                    </div>
 
-                    <form onSubmit={saveData}>
-                        <br/>
-                        <div>
-                            <button className="bttn" type="submit">Save</button>
-                            <button className="bttn" type="button" onClick={resetFields}>Reload</button>
+                    {/* Display different cards based on BMI category */}
+                    {bmiCategory && (
+                        <div className="bmi-cards">
+                            {bmiCategory === "Underweight" && (
+                                <div className="bmi-card">
+                                    <p>Your BMI indicates that you are underweight. 
+                                        Please consult with a healthcare provider for guidance.</p>
+                                </div>
+                            )}
+                            {bmiCategory === "Healthy" && (
+                                <div className="bmi-card">
+                                    <p>Your BMI falls within the healthy range.
+                                    Keep up the good work with your lifestyle habits!
+                                    </p>
+                                </div>
+                            )}
+                            {bmiCategory === "Overweight" && (
+                                <div className="bmi-card">
+                                    <p>Your BMI indicates that you are overweight.
+                                    Consider consulting with a healthcare provider for advice on weight management.
+                                    </p>
+                                </div>
+                            )}
+                            {bmiCategory === "Obese" && (
+                                <div className="bmi-card">
+                                    <p>Your BMI indicates that you are obese.
+                                    It's important to consult with a healthcare provider for support and guidance.
+                                    </p>
+                                </div>
+                            )}
                         </div>
-                    </form>
+                    )}
+
+
+                    <div className="bmi-scale">
+                        <div className={`underweight ${bmi >= 0 && bmi < 18.5 ? 'bold' : ''}`}>
+                            <div className="line"></div>
+                            <h4 className={bmi >= 0 && bmi < 18.5 ? 'bold' : ''}>Underweight</h4>
+                            <p>&lt; 18.5</p>
+                        </div>
+
+                        <div className={`healthy ${bmi >= 18.5 && bmi < 25 ? 'bold' : ''}`}>
+                            <div className="line"></div>
+                            <h4 className={bmi >= 18.5 && bmi < 25 ? 'bold' : ''}>Healthy</h4>
+                            <p>18.5 – 25</p>
+                        </div>
+
+                        <div className={`overweight ${bmi >= 25 && bmi < 30 ? 'bold' : ''}`}>
+                            <div className="line"></div>
+                            <h4 className={bmi >= 25 && bmi < 30 ? 'bold' : ''}>Overweight</h4>
+                            <p>25 – 30</p>
+                        </div>
+
+                        <div className={`obese ${bmi >= 30 ? 'bold' : ''}`}>
+                            <div className="line"></div>
+                            <h4 className={bmi >= 30 ? 'bold' : ''}>Obese</h4>
+                            <p>≥ 30</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <form onSubmit={saveData}>
+                            <br/>
+                            <div>
+                                <button className="bttn" type="submit">Save</button>
+                                <button className="bttn" type="button" onClick={resetFields}>Reload</button>
+                            </div>
+                        </form>
 
                     </div>
                 </div>
