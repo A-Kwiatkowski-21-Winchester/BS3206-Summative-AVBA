@@ -17,6 +17,13 @@
             "request": "launch",
             "command": "npm run start",
             "cwd": "${workspaceFolder}\\client"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Current File",
+            "program": "${file}",
+            "cwd": "${fileDirname}"
         }
     ]
 }
