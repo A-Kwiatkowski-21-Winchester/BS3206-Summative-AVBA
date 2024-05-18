@@ -7,27 +7,25 @@ const router = express.Router();
 // get all appointments
 router.get("/", async (_, res) => {
 
-    dbconnect.generateClient();
-    dbconnect.openClient();
+    let client = dbconnect.generateClient();
+    dbconnect.openClient(client);
 
-    let client = dbconnect.globals.client;
     let db = client.db("GPData")
     let collection = db.collection("GPAppointments")
 
     collection.find({}).toArray()
     .then((response) => res.status(200).json(response))
     .catch((err) => res.status(500).json(err))
-    .finally(() => dbconnect.closeClient())
+    .finally(() => dbconnect.closeClient(client))
  
 });
 
 //Add a user appointment
 router.post('/create', (req, res) => {
     
-    dbconnect.generateClient();
-    dbconnect.openClient();
+    let client = dbconnect.generateClient();
+    dbconnect.openClient(client);
    
-    let client = dbconnect.globals.client;
     let db = client.db("GPData")
     let collection = db.collection("GPAppointments")
 
@@ -42,24 +40,23 @@ router.post('/create', (req, res) => {
         () => console.error("Error in updating DB.")
     )
     recordPromise.finally(
-        () => dbconnect.closeClient()
+        () => dbconnect.closeClient(client)
     )
 })
 
 
 router.delete('/delete/:id', (req, res) => {
     
-    dbconnect.generateClient();
-    dbconnect.openClient();
+    let client = dbconnect.generateClient();
+    dbconnect.openClient(client);
 
-    let client = dbconnect.globals.client;
     let db = client.db("GPData")
     let collection = db.collection("GPAppointments")
 
     collection.deleteOne({ _id: new ObjectId(req.params.id) })
     .then((response) => res.status(200).json(response))
     .catch((err) => res.status(500).json(err))
-    .finally(() => dbconnect.closeClient())
+    .finally(() => dbconnect.closeClient(client))
 })
 
 module.exports = router

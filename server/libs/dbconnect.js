@@ -14,7 +14,8 @@ const uri = `mongodb+srv://${env.username}:${env.password}@${env.clusterName}/?r
  * Holds the global dbconnect variables.
  */
 let globals = {
-    /** The global client.
+    /** The global client. No longer recommended as can cause issues with multiple concurrent requests.
+     * Instead, call {@linkcode generateClient()} with `global` = `false`, and used the returned client to perform actions.
      * @type {MongoClient} */
     client: null,
 
@@ -25,12 +26,12 @@ let globals = {
 
 /**
  * Generates a new client to communicate with the database.
- * @param {boolean} global If the generated client should be global. Defaults to `true`.
- * - If `true`, sets the global `.client` property in this module.
+ * @param {boolean} global If the generated client should be global. Defaults to `false`.
  * - If `false`, returns the newly generated client.
+ * - If `true`, sets the global `.client` property in this module. No longer recommended (see {@linkcode globals.client})
  * @param {string} customUri A custom URI to connect to. If empty, uses the default configured URI.
  */
-function generateClient(global = true, customUri = null) {
+function generateClient(global = false, customUri = null) {
     let uriToUse = customUri ? customUri : uri;
     let newClient = new MongoClient(uriToUse, {
         serverApi: {
@@ -50,7 +51,7 @@ function generateClient(global = true, customUri = null) {
 /**
  * Opens the designated client connection so actions can be performed.
  * @param {MongoClient} clientToOpen The client to open. If left empty,
- * will open the global `.client` property in this module.
+ * will open the global `.client` property in this module (not recommended).
  */
 function openClient(clientToOpen = null) {
     try {
@@ -69,7 +70,7 @@ function openClient(clientToOpen = null) {
  * Closes the designated client. Once a client is closed, it cannot be used
  * again and a new one must be generated using {@linkcode generateClient()}.
  * @param {MongoClient} clientToClose The client to close. If left empty,
- * will close the global `.client` property in this module.
+ * will close the global `.client` property in this module (not recommended).
  */
 function closeClient(clientToClose = null) {
     try {
@@ -120,7 +121,7 @@ async function transaction(action) {
  * Pings the designated client and puts a log message in console.
  * The client should be {@link openClient opened} before attempting ping.
  * @param {MongoClient} clientToUse The client to use. If left empty,
- * will use the global `.client` property in this module.
+ * will use the global `.client` property in this module (not recommended).
  * @returns {boolean} Whether the ping was successful.
  */
 async function ping(clientToUse = null) {
