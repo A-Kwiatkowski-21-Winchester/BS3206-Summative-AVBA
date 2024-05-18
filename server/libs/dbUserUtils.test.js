@@ -341,15 +341,6 @@ describe("removeUserData() tests", () => {
 });
 //#endregion
 
-//#region destroyUser() tests
-describe("destroyUser() tests", () => {
-    //TODO: Add destroy test at end of file
-    test.todo("Destroy with no args");
-    test.todo("Destroy with non-existent ID");
-    test.todo("Destroy with existent ID");
-});
-//#endregion
-
 //#region checkPassword() tests
 describe("checkPassword() tests", () => {
     test("checkPassword() with no arguments", async () => {
@@ -447,15 +438,109 @@ describe("createSessionToken() tests", () => {
     });
 
     test("createSessionToken() with invalid iden (email)", async () => {
-        await expect(dbUserUtils.createSessionToken("!!!", "bork")).rejects.toThrow(
+        await expect(
+            dbUserUtils.createSessionToken("!!!", "bork")
+        ).rejects.toThrow(dbUserUtils.RequestError);
+    });
+
+    test("createSessionToken() with invalid idenForm", async () => {
+        await expect(
+            dbUserUtils.createSessionToken("!!!", "bork", "bakery")
+        ).rejects.toThrow(dbUserUtils.RequestError);
+    });
+
+    test("createSessionToken() with valid params", async () => {
+        preReqValue(validTestUserID);
+
+        await expect(
+            (validToken = dbUserUtils.createSessionToken(
+                await validTestUserID,
+                "bonk",
+                "_id"
+            ))
+        ).resolves.not.toThrow();
+    });
+});
+//#endregion
+
+//#region checkSessionToken() tests
+describe("checkSessionToken() tests", () => {
+    test("checkSessionToken() with no arguments", async () => {
+        await expect(dbUserUtils.checkSessionToken()).rejects.toThrow(
             dbUserUtils.RequestError
         );
     });
-    
-    test("createSessionToken() with invalid idenForm", async () => {
-        await expect(dbUserUtils.createSessionToken("!!!", "bork", "bakery")).rejects.toThrow(
+
+    test("checkSessionToken() with invalid token", async () => {
+        await expect(dbUserUtils.checkSessionToken("!!!")).resolves.toBeFalsy();
+    });
+
+    test("checkSessionToken() with valid token", async () => {
+        preReqValue(validTestUserID);
+        preReqValue(validToken);
+
+        let tokenObject = await validToken;
+
+        await expect(
+            dbUserUtils.checkSessionToken(tokenObject._id)
+        ).resolves.toBe(await validTestUserID);
+    });
+});
+//#endregion
+
+//#region expireSessionToken() tests
+describe("expireSessionToken() tests", () => {
+    test("expireSessionToken() with no arguments", async () => {
+        await expect(dbUserUtils.expireSessionToken()).rejects.toThrow(
             dbUserUtils.RequestError
         );
+    });
+
+    test("expireSessionToken() with invalid token", async () => {
+        await expect(dbUserUtils.expireSessionToken("!!!")).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+
+    test("expireSessionToken() with valid token", async () => {
+        preReqValue(validToken);
+
+        let tokenObject = await validToken;
+
+        // Expire the token
+        await expect(
+            dbUserUtils.expireSessionToken(tokenObject._id)
+        ).resolves.not.toThrow();
+
+        // Check its validity (should be false)
+        await expect(
+            dbUserUtils.checkSessionToken(tokenObject._id)
+        ).resolves.toBeFalsy();
+    });
+});
+//#endregion
+
+//#region destroyUser() tests
+describe("destroyUser() tests", () => {
+    //TODO: Add destroy tests
+    test("destroyUser() with no arguments", async () => {
+        await expect(dbUserUtils.destroyUser()).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+
+    test("destroyUser() with non-existent ID", async () => {
+        await expect(dbUserUtils.destroyUser("!!!")).rejects.toThrow(
+            dbUserUtils.RequestError
+        );
+    });
+
+    test("destroyUser() with existent ID", async () => {
+        preReqValue(validTestUserID);
+
+        await expect(
+            dbUserUtils.destroyUser(await validTestUserID)
+        ).resolves.not.toThrow();
     });
 });
 //#endregion

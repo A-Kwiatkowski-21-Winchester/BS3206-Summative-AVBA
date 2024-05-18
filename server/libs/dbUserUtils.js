@@ -627,6 +627,10 @@ async function checkSessionToken(token) {
     if (isEmpty(token))
         throw new RequestError("Token is required but was not provided.");
 
+    if (typeof token != "string")
+        throw new RequestError(
+            `Token is of type ${typeof token} but should be string.`
+        );
     prepClient();
     let getPromise = getCollection(userTokenCollection).findOne({ _id: token });
     getPromise.finally(() => dbconnect.closeClient());
@@ -646,7 +650,7 @@ async function checkSessionToken(token) {
  * Forcibly expires (i.e. deletes) a session token on the database.
  * @param {string} token
  */
-function expireSessionToken(token) {
+async function expireSessionToken(token) {
     if (isEmpty(token))
         throw new RequestError("Token is required but was not provided.");
 
@@ -655,20 +659,21 @@ function expireSessionToken(token) {
         _id: token,
     });
     let trunc_token = token.slice(0, 7);
-    deletePromise.then((result) => {
-        if (!result)
-            console.error(
-                `Token '${trunc_token}(...)' could not be found. Unable to expire.`
-            );
-        else console.log(`Token '${trunc_token}(...)' expired successfully.`);
-    });
+
     deletePromise.catch((error) => {
-        console.error(
-            `Error: token '${trunc_token}(...)' may not have been deleted.`
+        throw new RequestError(
+            `Error: token '${trunc_token}(...)' may not have been deleted.\n` +
+                `Cause: ${error.message}`
         );
-        throw error;
     });
     deletePromise.finally(() => dbconnect.closeClient());
+
+    let promiseResult = await deletePromise;
+    if (!promiseResult)
+        throw new RequestError(
+            `Token '${trunc_token}(...)' could not be found. Unable to expire.`
+        );
+    else console.log(`Token '${trunc_token}(...)' expired successfully.`);
 }
 
 module.exports = {
