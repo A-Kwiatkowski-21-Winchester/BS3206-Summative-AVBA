@@ -1,23 +1,10 @@
-body {
-    line-height: 1.5;
-}
 
-.button {
-    background-color: #002326;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 10px;
-    margin-right: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s; /* Add transition for smoother color change */
-}
-
+/*stylign for the labels*/
 .labels {
     margin-bottom: 5px;
 }
 
-
+/*stylign for the buttons on the screen*/
 .bttn {
     background-color: #002326;
     color: white;
@@ -45,7 +32,12 @@ body {
     border: 2px solid white; /* Add border when clicked */
 }
 
+/*for the bmi result to be centered*/
+.result{
+    text-align: center;
+}
 
+/*styling for the whole page to keep everything uniform*/
 .bmiPage {
     max-width: 960px; 
     margin-top: 100px; 
@@ -57,22 +49,20 @@ body {
     padding-left: 50px; /* Adjust the left padding */
 }
 
+/*styling of the bullet points*/
 ul {
     text-align: left; /* Align bullet points to the left */
     max-width: auto; 
     margin: left; 
 }
 
+/*the styling of the links on the page*/
 .link {
     text-decoration: underline;
     color: #002326; 
 }
 
-.pageLink {
-    border-left: 3px solid #002326; /* Adjust the width and color */
-    margin-top: 10px;
-}
-
+/*styling for dropdown type text*/
 .infoContainer {
     padding-left: 2px; /* Adjust the padding */
 }
@@ -86,6 +76,7 @@ ul {
     margin-left: 3px; /* Adjust the left margin */
 }
 
+/*styling of the bmi calc box*/
 .parentContainer {
     background-color: white; /* Set background color of parent container to white */
     max-width: 600px;
@@ -95,7 +86,6 @@ ul {
     border: 0.25em solid #002326;
     background-color: white; /* Set background color of child container to white */
     text-align: left;
-    
 }
 
 .childBmi h2 {
@@ -115,6 +105,7 @@ ul {
     margin: 0; /* Remove default margin */
 }
 
+/*styling of the input section on the bmi calc*/
 .bmi-input {
     background-color: white;
     border-color: #002326;
@@ -127,6 +118,7 @@ ul {
     font-size: medium; 
 }
 
+/*to add a grey line after a section to break up the box a bit*/
 .divider {
     border-top: 1px solid #ccc;
     margin: 20px 0; 
@@ -135,6 +127,7 @@ ul {
     margin-right: +2.5%;
 }
 
+/*section for the date of birth buttons to be horizontal*/
 .buttonContainer {
     display: flex; /* Use flexbox to arrange buttons horizontally */
     justify-content: space-between; /* Distribute space between buttons */
@@ -149,6 +142,7 @@ ul {
     margin-top: 10px; /* Add space between text and input */
 }
 
+/*styling of the radio buttons*/
 .genderWrapper {
     display: flex;
     flex-direction: column; /* Align items vertically */
@@ -174,3 +168,57 @@ ul {
     color: #fff; /* Set text color when selected */
 }
 
+
+/*for the text information based on bmi to be centered*/
+.bmi-info {
+    text-align: center;
+}
+
+
+/* this section is to add a bmi gauge line so each colour represents a section on the bmi scale a user will fall under*/
+
+.bmi-gauge h4 {
+    font-size: 0.75rem;
+    color: black;
+}
+  
+.bmi-gauge div {
+    flex: 1;
+    text-align: center;
+    text-transform: uppercase;
+    border-top: 5px solid var(--color);
+    padding: 10px;
+}
+  
+.bmi-gauge {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.line {
+    width: 100%;
+    height: 5px;
+    background-color: transparent; 
+}
+
+.underweight .line {
+    background-color: orange;
+}
+
+.healthy .line {
+    background-color: green;
+}
+
+.overweight .line {
+    background-color: pink;
+}
+
+.obese .line {
+    background-color: red;
+}
+
+.bold {
+    font-weight: bold;
+}
+ 
