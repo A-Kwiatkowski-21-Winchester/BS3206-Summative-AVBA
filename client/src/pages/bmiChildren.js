@@ -146,6 +146,7 @@ function BmiChildren() {
                {" "}
                 <a href="/bmitest" className="button">Go back</a>
             </p>
+            <br/>
 
             {/* Main header for the childrens page*/}
             <h1>Calculate your body mass index (BMI) for children and teenagers</h1>

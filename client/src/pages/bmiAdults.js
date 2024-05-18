@@ -118,7 +118,7 @@ function BmiAdults() {
     
     
         {/* this calculates the age that has been inputed into their relevant 
-        sections and ensures the user is not 18 or over as they would be using the wrong
+        sections and ensures the user is not 17 or under as they would be using the wrong
         bmi calculator*/}
         const checkAge = () => {
             if (day && month && year) {
@@ -143,12 +143,16 @@ function BmiAdults() {
     
     return (
         <div className="bmiPage">
+            {/* Navigation link to go back to the previous page it was on */}
             <p>
                 <a href="/bmitest" className="button">Go back</a>
             </p>
+            <br/>
 
+             {/* Main header for the adults page*/}
             <h1>Calculate your BMI for adults</h1>
 
+            {/* Description of what this page is meant to do */}
             <br/>
             <p>
                 Use this service to:
@@ -159,12 +163,14 @@ function BmiAdults() {
                 <li>Get information about what to do next</li>
             </ul>
 
+            {/* Disclaimer */}
             <br />
             <p>
                 This tool should not be used to make any symptom diagnoses. Get in touch with your GP or neighborhood chemist if you're concerned about your weight.
             </p>
             <br/>
 
+            {/* description of the requirments where you can not use the tool */}
             <h2>
                 Who cannot use the tool
             </h2>
@@ -182,6 +188,7 @@ function BmiAdults() {
                 <li>possess a health issue that impacts your height</li>
             </ul>
 
+            {/* Information for children and teens in the wrong section for the Bmi Calculator */}
             <br />
             <div className="infoContent">
                 <div className="infoText">
@@ -226,7 +233,7 @@ function BmiAdults() {
             </p>
 
             <br/>
-            {/* Additional information dropdown */}
+            {/* extra information dropdown detailing how your bmi is calculated*/}
             <div className="infoContainer">
                 <p>
                     <a href="/#" className="link" onClick={toggleInfo}>How your BMI is calculated</a>
@@ -264,12 +271,15 @@ function BmiAdults() {
             </p>
             <br/>
 
+             {/* BMI calculator input options including age and weight, height
+            both in metric and imperial measurment */}
             <div className="parentContainer">
                 <div className="childBmi">
                     <h2>
                         BMI calculator for adults
                     </h2>
                    
+                   {/* The buttons allowing the user to switch between imperial and metric*/}
                     <div>
                         <button className={`bttn ${weightSystem === "metric" ? "" : "inactive"}`} onClick={() => setWeightSystem("metric")}>Metric (kg, cm)</button>
                         <button className={`bttn ${weightSystem === "imperial" ? "" : "inactive"}`} onClick={() => setWeightSystem("imperial")}>Imperial (lbs, ft)</button>
@@ -277,6 +287,7 @@ function BmiAdults() {
 
                     {weightSystem === 'metric' ? (
                         <>
+                        {/* these are the input fields for the weight, height*/}
                             <div>
                                 <label className="labels">Height (cm):</label><br />
                                 <input className="bmi-input" type="number" placeholder=""  onChange={(e)=>setHeight(e.target.value)} value={height} />
@@ -312,7 +323,7 @@ function BmiAdults() {
                     )}
 
                       {/* Date of birth input fields to make sure the user is within the correct age
-                    range and if not then they are directed to the adult section */}
+                    range and if not then they are directed to the child and teens section */}
                     <div className="buttonContainer">
                         <div className="buttonWrapper">
                             <p>Day</p>
