@@ -101,9 +101,9 @@ function BmiAdults() {
     
             if (calculatedBmi < 18.5) {
                 category = "Underweight";
-            } else if (calculatedBmi < 23) {
+            } else if (calculatedBmi < 25) {
                 category = "Healthy";
-            } else if (calculatedBmi < 27.5) {
+            } else if (calculatedBmi < 30) {
                 category = "Overweight";
             } else {
                 category = "Obese";
