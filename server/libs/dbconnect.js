@@ -147,4 +147,5 @@ module.exports = {
     closeClient,
     ping,
     transaction,
+    
 };

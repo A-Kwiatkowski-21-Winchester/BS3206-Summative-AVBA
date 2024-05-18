@@ -1,0 +1,46 @@
+*{
+    font-family: "Poppins", sans-serif;
+}
+.container{
+    display: block;
+    position: absolute;
+    width: 80%;
+    margin: 10%;
+    border: 2px solid red;
+}
+.title{
+    text-align: center;
+}
+.cards {
+
+    background-color: #015089;
+    border: 1px solid #FFFFFF;
+    color: #FFFFFF;
+    padding: 30px;
+    font-size: 20px;
+    text-align: left;
+    line-height: 35px;
+    border-radius: 20px;
+    
+}    
+.card {
+    display: grid;
+    grid-template-columns: 25% 25% 25%;
+    column-gap: 50px;
+    row-gap: 50px;
+    padding: 50px;
+}
+
+.aptbtn{
+    font-size: 15px;
+    width: 25%;
+    height: 15%;
+    background-color: rgba(255, 255, 255, 0.979);
+    border: 1px solid #FFFFFF;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.aptbtn:hover{
+    background-color: rgb(214, 218, 247);
+}
