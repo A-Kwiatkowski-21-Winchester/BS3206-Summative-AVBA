@@ -144,7 +144,7 @@ function BmiChildren() {
              {/* Navigation link to go back to the previous page it was on */}
              <p>
                {" "}
-                <a href="/bmitest" className="button">Go back</a>
+                <a href="/bmitest" className="bttn">Go back</a>
             </p>
             <br/>
 
