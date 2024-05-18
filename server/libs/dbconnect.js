@@ -121,6 +121,7 @@ async function transaction(action) {
  * The client should be {@link openClient opened} before attempting ping.
  * @param {MongoClient} clientToUse The client to use. If left empty,
  * will use the global `.client` property in this module.
+ * @returns {boolean} Whether the ping was successful.
  */
 async function ping(clientToUse = null) {
     if (!clientToUse) {
@@ -132,8 +133,10 @@ async function ping(clientToUse = null) {
         console.log(
             `Ping complete - successfully connected to ${clientToUse.options.srvHost}`
         );
+        return true;
     } catch {
         console.error(`Ping to ${clientToUse.options.srvHost} failed.`);
+        return false;
     }
 }
 

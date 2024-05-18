@@ -15,6 +15,11 @@ const idRegex = /[_]?id/i;
 
 // Custom Error
 class RequestError extends Error {
+    /**
+     * A custom error to be thrown in case of problems when performing user DB actions.
+     * @param {string} message A message to return describing the issue (and/or the cause).
+     * @param {int} statusCode *(optional)* A preferred HTTP status code to return. Default is `400` (Bad Request).
+     */
     constructor(message, statusCode = 400) {
         super(message);
         this.name = "RequestError";
@@ -120,9 +125,9 @@ const requiredFields = {
  * @param {object} userObject The user object to check the fields for
  * @param {string[]} ignoredFields Any fields to ignore in the checks
  */
-function checkUserReqFields(userObject, ignoredFields=[]) {
+function checkUserReqFields(userObject, ignoredFields = []) {
     for (const field of Object.keys(requiredFields)) {
-        if(ignoredFields.includes(field)) continue;
+        if (ignoredFields.includes(field)) continue;
         let fieldValue = userObject[field];
         // If field does not exist
         if (isEmpty(fieldValue))
@@ -205,6 +210,8 @@ function listRequiredFields() {
  * @throws Various `Error`s when fields are missing or invalid.
  */
 async function createUser(userObject) {
+    if (!userObject)
+        throw new RequestError("Provided user object was missing or empty");
     // If "(_)id" key is anywhere in the userObject
     if (Object.keys(userObject).find((key) => key.match(idRegex)))
         throw new RequestError(
@@ -266,6 +273,8 @@ async function getUserWhole(identifier, identifierForm = "_id") {
  * @param {object} userObject The userObject to replace the user with in the database. Must contain required fields.
  */
 async function updateUserWhole(userObject) {
+    if (!userObject)
+        throw new RequestError("Provided user object was missing or empty");
     if (isEmpty(userObject["_id"]))
         throw new RequestError(
             "No '_id' found in userObject; one should be included to update user. " +
@@ -282,7 +291,7 @@ async function updateUserWhole(userObject) {
                 `User with ID '${userObject._id}' does not exist. Could not update.`,
                 404
             );
-        else throw error
+        else throw error;
     }
 
     prepClient();
@@ -393,6 +402,12 @@ async function addUserData(
  * either the identifier matched no users, or the field did not exist.
  */
 async function getUserData(identifier, fieldNames, identifierForm = "_id") {
+    if (isEmpty(identifier))
+        throw new RequestError("ID is required but was not provided.");
+    if (isEmpty(fieldNames))
+        throw new RequestError(
+            "One or more fieldNames are required but none were provided."
+        );
     if (identifierForm.match(idRegex)) identifierForm = "_id";
     let validIDForms = ["_id", "email"];
     if (!validIDForms.includes(identifierForm))
@@ -530,6 +545,7 @@ async function changePassword(id, newPassword) {
         { _id: id },
         { $set: { password: encPassword } }
     );
+    updatePromise.finally(() => dbconnect.closeClient());
     let promiseResult = await updatePromise;
     if (!promiseResult)
         throw new RequestError(
@@ -611,6 +627,10 @@ async function checkSessionToken(token) {
     if (isEmpty(token))
         throw new RequestError("Token is required but was not provided.");
 
+    if (typeof token != "string")
+        throw new RequestError(
+            `Token is of type ${typeof token} but should be string.`
+        );
     prepClient();
     let getPromise = getCollection(userTokenCollection).findOne({ _id: token });
     getPromise.finally(() => dbconnect.closeClient());
@@ -630,7 +650,7 @@ async function checkSessionToken(token) {
  * Forcibly expires (i.e. deletes) a session token on the database.
  * @param {string} token
  */
-function expireSessionToken(token) {
+async function expireSessionToken(token) {
     if (isEmpty(token))
         throw new RequestError("Token is required but was not provided.");
 
@@ -639,20 +659,21 @@ function expireSessionToken(token) {
         _id: token,
     });
     let trunc_token = token.slice(0, 7);
-    deletePromise.then((result) => {
-        if (!result)
-            console.error(
-                `Token '${trunc_token}(...)' could not be found. Unable to expire.`
-            );
-        else console.log(`Token '${trunc_token}(...)' expired successfully.`);
-    });
+
     deletePromise.catch((error) => {
-        console.error(
-            `Error: token '${trunc_token}(...)' may not have been deleted.`
+        throw new RequestError(
+            `Error: token '${trunc_token}(...)' may not have been deleted.\n` +
+                `Cause: ${error.message}`
         );
-        throw error;
     });
     deletePromise.finally(() => dbconnect.closeClient());
+
+    let promiseResult = await deletePromise;
+    if (!promiseResult)
+        throw new RequestError(
+            `Token '${trunc_token}(...)' could not be found. Unable to expire.`
+        );
+    else console.log(`Token '${trunc_token}(...)' expired successfully.`);
 }
 
 module.exports = {
