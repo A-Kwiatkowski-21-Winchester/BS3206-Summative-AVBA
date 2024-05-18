@@ -12,7 +12,8 @@ export default [
       "no-unused-vars": "warn",
       "no-undef": "error",
       "no-unreachable": "warn",
-      "react/react-in-jsx-scope": "off"
+      "react/react-in-jsx-scope": "off",
+      "react/no-unescaped-entities": "warn"
     },
   },
 ];
