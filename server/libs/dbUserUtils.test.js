@@ -60,12 +60,12 @@ let dbConnection = false;
 beforeAll(async () => {
     const dbconnect = require("./dbconnect");
 
-    dbconnect.generateClient();
-    dbconnect.openClient();
+    let client = dbconnect.generateClient();
+    dbconnect.openClient(client);
 
-    let pingSuccess = await dbconnect.ping();
+    let pingSuccess = await dbconnect.ping(client);
     if (!pingSuccess) {
-        dbconnect.closeClient();
+        dbconnect.closeClient(client);
         console.error("Unable to connect to database.");
         throw new TestingError(
             "Unable to connect to database - " +
@@ -74,7 +74,7 @@ beforeAll(async () => {
     }
     console.log("Database connection successful");
     dbConnection = true;
-    dbconnect.closeClient();
+    dbconnect.closeClient(client);
 });
 //#endregion
 
@@ -367,16 +367,16 @@ describe("checkPassword() tests", () => {
         preReqValue(validTestUserID); // Checks for previously created user
 
         // * Manually manipulating password so it is garbled and undecryptable *
-        dbconnect.generateClient();
-        dbconnect.openClient();
-        let collection = dbconnect.globals.client
+        let client = dbconnect.generateClient();
+        dbconnect.openClient(client);
+        let collection = client
             .db("Users")
             .collection("UserData");
         let updateTask = collection.findOneAndUpdate(
             { _id: await validTestUserID },
             { $set: { password: "bogus" } }
         );
-        updateTask.finally(() => dbconnect.closeClient());
+        updateTask.finally(() => dbconnect.closeClient(client));
         await updateTask;
         // ***
 
@@ -563,11 +563,11 @@ afterAll(async () => {
     if (!dbConnection)
         return console.log("No DB connected, no cleanup necessary.");
 
-    dbconnect.generateClient();
-    dbconnect.openClient();
+    let client = dbconnect.generateClient();
+    dbconnect.openClient(client);
 
     // Delete testing users
-    let updatePromise = dbconnect.globals.client
+    let updatePromise = client
         .db("Users")
         .collection("UserData")
         .deleteMany({
@@ -575,7 +575,7 @@ afterAll(async () => {
         });
 
     updatePromise.catch(() => console.error("Error deleting test users"));
-    updatePromise.finally(() => dbconnect.closeClient());
+    updatePromise.finally(() => dbconnect.closeClient(client));
     await updatePromise;
     console.log("Test users deleted.");
 });

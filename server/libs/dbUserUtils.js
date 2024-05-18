@@ -29,15 +29,16 @@ class RequestError extends Error {
 
 //#region Internal tools
 
-/** Generates and opens a dbconnect client. */
+/** Generates and opens a dbconnect client. Returns the new client. */
 function prepClient() {
-    dbconnect.generateClient();
-    dbconnect.openClient();
+    let client = dbconnect.generateClient();
+    dbconnect.openClient(client);
+    return client
 }
 
 /** Gets a specific database collection. */
-function getCollection(name) {
-    let collection = dbconnect.globals.client.db(dbName).collection(name);
+function getCollection(client, name) {
+    let collection = client.db(dbName).collection(name);
     return collection;
 }
 
@@ -82,8 +83,8 @@ function securePassword(password, superuser = false, cipherAsString = true) {
  */
 async function getPassword(id) {
     if (isEmpty(id)) throw new RequestError("No ID provided to get user with.");
-    prepClient();
-    let getPromise = getCollection(userDataCollection).findOne(
+    let client = prepClient();
+    let getPromise = getCollection(client, userDataCollection).findOne(
         { _id: id },
         {
             projection: {
@@ -92,7 +93,7 @@ async function getPassword(id) {
             },
         }
     );
-    getPromise.finally(() => dbconnect.closeClient());
+    getPromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await getPromise;
     if (!promiseResult)
         throw new RequestError(
@@ -235,9 +236,9 @@ async function createUser(userObject) {
     userObject.password = securePassword(userObject.password);
 
     console.log("Inserting into DB...");
-    prepClient();
-    let insertPromise = getCollection(userDataCollection).insertOne(userObject);
-    insertPromise.finally(() => dbconnect.closeClient());
+    let client = prepClient();
+    let insertPromise = getCollection(client, userDataCollection).insertOne(userObject);
+    insertPromise.finally(() => dbconnect.closeClient(client));
     insertPromise.then(() => console.log("Insertion complete."));
     let promiseResult = await insertPromise;
     if (!promiseResult) throw new RequestError("Unable to create user", 500);
@@ -259,10 +260,10 @@ async function getUserWhole(identifier, identifierForm = "_id") {
         throw new RequestError(
             `Invalid identifier form (should be one of: ${validIDForms})`
         );
-    prepClient();
+    let client = prepClient();
     let filter = { [identifierForm]: identifier };
-    let findPromise = getCollection(userDataCollection).findOne(filter);
-    findPromise.finally(() => dbconnect.closeClient());
+    let findPromise = getCollection(client, userDataCollection).findOne(filter);
+    findPromise.finally(() => dbconnect.closeClient(client));
     return await findPromise;
 }
 
@@ -294,12 +295,12 @@ async function updateUserWhole(userObject) {
         else throw error;
     }
 
-    prepClient();
-    let updatePromise = getCollection(userDataCollection).findOneAndReplace(
+    let client = prepClient();
+    let updatePromise = getCollection(client, userDataCollection).findOneAndReplace(
         { _id: userObject._id },
         userObject
     );
-    updatePromise.finally(() => dbconnect.closeClient());
+    updatePromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await updatePromise;
     if (!promiseResult)
         throw new RequestError(
@@ -359,8 +360,8 @@ async function addUserData(
     }
     let updateFilter = { [action]: dataAction };
 
-    prepClient();
-    let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
+    let client = prepClient();
+    let updatePromise = getCollection(client, userDataCollection).findOneAndUpdate(
         { _id: id },
         updateFilter
     );
@@ -381,7 +382,7 @@ async function addUserData(
         ]);
         promiseResult = await convertUpdatePromise;
     } finally {
-        dbconnect.closeClient();
+        dbconnect.closeClient(client);
     }
 
     if (!promiseResult)
@@ -428,12 +429,12 @@ async function getUserData(identifier, fieldNames, identifierForm = "_id") {
         projectionObj[fieldName] = 1;
     });
 
-    prepClient();
-    let getPromise = getCollection(userDataCollection).findOne(
+    let client = prepClient();
+    let getPromise = getCollection(client, userDataCollection).findOne(
         { [identifierForm]: identifier },
         { projection: projectionObj }
     );
-    getPromise.finally(() => dbconnect.closeClient());
+    getPromise.finally(() => dbconnect.closeClient(client));
     return await getPromise;
 }
 
@@ -452,13 +453,13 @@ async function removeUserData(id, fieldName) {
             `Field '${fieldName}' is required and cannot be removed.`
         );
 
-    prepClient();
-    let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
+    let client = prepClient();
+    let updatePromise = getCollection(client, userDataCollection).findOneAndUpdate(
         { _id: id },
         { $unset: { [fieldName]: "" } }
     );
 
-    updatePromise.finally(() => dbconnect.closeClient());
+    updatePromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await updatePromise;
 
     if (!promiseResult)
@@ -481,11 +482,11 @@ async function removeUserData(id, fieldName) {
 async function destroyUser(id) {
     if (isEmpty(id))
         throw new RequestError("ID is required but was not provided.");
-    prepClient();
-    let destroyPromise = getCollection(userDataCollection).findOneAndDelete({
+    let client = prepClient();
+    let destroyPromise = getCollection(client, userDataCollection).findOneAndDelete({
         _id: id,
     });
-    destroyPromise.finally(() => dbconnect.closeClient());
+    destroyPromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await destroyPromise;
     if (!promiseResult)
         throw new RequestError(
@@ -510,7 +511,7 @@ async function checkPassword(id, password) {
             "Password is required for comparison but was not provided."
         );
 
-    prepClient();
+    let client = prepClient();
 
     let compareResult;
     try {
@@ -540,12 +541,12 @@ async function changePassword(id, newPassword) {
         throw new RequestError("newPassword is required but was not provided.");
 
     let encPassword = securePassword(newPassword);
-    prepClient();
-    let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
+    let client = prepClient();
+    let updatePromise = getCollection(client, userDataCollection).findOneAndUpdate(
         { _id: id },
         { $set: { password: encPassword } }
     );
-    updatePromise.finally(() => dbconnect.closeClient());
+    updatePromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await updatePromise;
     if (!promiseResult)
         throw new RequestError(
@@ -607,10 +608,10 @@ async function createSessionToken(
         expiry: expiryTime,
     };
 
-    prepClient();
+    let client = prepClient();
     let insertPromise =
-        getCollection(userTokenCollection).insertOne(tokenObject);
-    insertPromise.finally(() => dbconnect.closeClient());
+        getCollection(client, userTokenCollection).insertOne(tokenObject);
+    insertPromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await insertPromise;
     if (!promiseResult)
         throw new RequestError("Unknown failure. Token not generated.", 500);
@@ -631,9 +632,9 @@ async function checkSessionToken(token) {
         throw new RequestError(
             `Token is of type ${typeof token} but should be string.`
         );
-    prepClient();
-    let getPromise = getCollection(userTokenCollection).findOne({ _id: token });
-    getPromise.finally(() => dbconnect.closeClient());
+    let client = prepClient();
+    let getPromise = getCollection(client, userTokenCollection).findOne({ _id: token });
+    getPromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await getPromise;
     //Non-existent token is the same as an expired token.
     if (!promiseResult) return false;
@@ -654,8 +655,8 @@ async function expireSessionToken(token) {
     if (isEmpty(token))
         throw new RequestError("Token is required but was not provided.");
 
-    prepClient();
-    let deletePromise = getCollection(userTokenCollection).findOneAndDelete({
+    let client = prepClient();
+    let deletePromise = getCollection(client, userTokenCollection).findOneAndDelete({
         _id: token,
     });
     let trunc_token = token.slice(0, 7);
@@ -666,7 +667,7 @@ async function expireSessionToken(token) {
                 `Cause: ${error.message}`
         );
     });
-    deletePromise.finally(() => dbconnect.closeClient());
+    deletePromise.finally(() => dbconnect.closeClient(client));
 
     let promiseResult = await deletePromise;
     if (!promiseResult)
