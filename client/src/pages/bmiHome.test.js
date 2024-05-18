@@ -2,7 +2,7 @@ import React from 'react';
 import {test, expect} from "@jest/globals"
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import '@testing-library/jest-dom/extend-expect';
+// import '@testing-library/jest-dom/extend-expect';
 import Bmi from './bmiHome';
 
 test('renders BMI page correctly', () => {
