@@ -511,8 +511,6 @@ async function checkPassword(id, password) {
             "Password is required for comparison but was not provided."
         );
 
-    let client = prepClient();
-
     let compareResult;
     try {
         let encUserPass = await getPassword(id);
