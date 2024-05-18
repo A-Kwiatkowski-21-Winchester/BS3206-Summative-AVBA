@@ -15,6 +15,11 @@ const idRegex = /[_]?id/i;
 
 // Custom Error
 class RequestError extends Error {
+    /**
+     * A custom error to be thrown in case of problems when performing user DB actions.
+     * @param {string} message A message to return describing the issue (and/or the cause).
+     * @param {int} statusCode *(optional)* A preferred HTTP status code to return. Default is `400` (Bad Request).
+     */
     constructor(message, statusCode = 400) {
         super(message);
         this.name = "RequestError";
@@ -24,15 +29,16 @@ class RequestError extends Error {
 
 //#region Internal tools
 
-/** Generates and opens a dbconnect client. */
+/** Generates and opens a dbconnect client. Returns the new client. */
 function prepClient() {
-    dbconnect.generateClient();
-    dbconnect.openClient();
+    let client = dbconnect.generateClient();
+    dbconnect.openClient(client);
+    return client
 }
 
 /** Gets a specific database collection. */
-function getCollection(name) {
-    let collection = dbconnect.globals.client.db(dbName).collection(name);
+function getCollection(client, name) {
+    let collection = client.db(dbName).collection(name);
     return collection;
 }
 
@@ -77,8 +83,8 @@ function securePassword(password, superuser = false, cipherAsString = true) {
  */
 async function getPassword(id) {
     if (isEmpty(id)) throw new RequestError("No ID provided to get user with.");
-    prepClient();
-    let getPromise = getCollection(userDataCollection).findOne(
+    let client = prepClient();
+    let getPromise = getCollection(client, userDataCollection).findOne(
         { _id: id },
         {
             projection: {
@@ -87,7 +93,7 @@ async function getPassword(id) {
             },
         }
     );
-    getPromise.finally(() => dbconnect.closeClient());
+    getPromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await getPromise;
     if (!promiseResult)
         throw new RequestError(
@@ -120,9 +126,9 @@ const requiredFields = {
  * @param {object} userObject The user object to check the fields for
  * @param {string[]} ignoredFields Any fields to ignore in the checks
  */
-function checkUserReqFields(userObject, ignoredFields=[]) {
+function checkUserReqFields(userObject, ignoredFields = []) {
     for (const field of Object.keys(requiredFields)) {
-        if(ignoredFields.includes(field)) continue;
+        if (ignoredFields.includes(field)) continue;
         let fieldValue = userObject[field];
         // If field does not exist
         if (isEmpty(fieldValue))
@@ -205,6 +211,8 @@ function listRequiredFields() {
  * @throws Various `Error`s when fields are missing or invalid.
  */
 async function createUser(userObject) {
+    if (!userObject)
+        throw new RequestError("Provided user object was missing or empty");
     // If "(_)id" key is anywhere in the userObject
     if (Object.keys(userObject).find((key) => key.match(idRegex)))
         throw new RequestError(
@@ -228,9 +236,9 @@ async function createUser(userObject) {
     userObject.password = securePassword(userObject.password);
 
     console.log("Inserting into DB...");
-    prepClient();
-    let insertPromise = getCollection(userDataCollection).insertOne(userObject);
-    insertPromise.finally(() => dbconnect.closeClient());
+    let client = prepClient();
+    let insertPromise = getCollection(client, userDataCollection).insertOne(userObject);
+    insertPromise.finally(() => dbconnect.closeClient(client));
     insertPromise.then(() => console.log("Insertion complete."));
     let promiseResult = await insertPromise;
     if (!promiseResult) throw new RequestError("Unable to create user", 500);
@@ -252,10 +260,10 @@ async function getUserWhole(identifier, identifierForm = "_id") {
         throw new RequestError(
             `Invalid identifier form (should be one of: ${validIDForms})`
         );
-    prepClient();
+    let client = prepClient();
     let filter = { [identifierForm]: identifier };
-    let findPromise = getCollection(userDataCollection).findOne(filter);
-    findPromise.finally(() => dbconnect.closeClient());
+    let findPromise = getCollection(client, userDataCollection).findOne(filter);
+    findPromise.finally(() => dbconnect.closeClient(client));
     return await findPromise;
 }
 
@@ -266,6 +274,8 @@ async function getUserWhole(identifier, identifierForm = "_id") {
  * @param {object} userObject The userObject to replace the user with in the database. Must contain required fields.
  */
 async function updateUserWhole(userObject) {
+    if (!userObject)
+        throw new RequestError("Provided user object was missing or empty");
     if (isEmpty(userObject["_id"]))
         throw new RequestError(
             "No '_id' found in userObject; one should be included to update user. " +
@@ -282,15 +292,15 @@ async function updateUserWhole(userObject) {
                 `User with ID '${userObject._id}' does not exist. Could not update.`,
                 404
             );
-        else throw error
+        else throw error;
     }
 
-    prepClient();
-    let updatePromise = getCollection(userDataCollection).findOneAndReplace(
+    let client = prepClient();
+    let updatePromise = getCollection(client, userDataCollection).findOneAndReplace(
         { _id: userObject._id },
         userObject
     );
-    updatePromise.finally(() => dbconnect.closeClient());
+    updatePromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await updatePromise;
     if (!promiseResult)
         throw new RequestError(
@@ -350,8 +360,8 @@ async function addUserData(
     }
     let updateFilter = { [action]: dataAction };
 
-    prepClient();
-    let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
+    let client = prepClient();
+    let updatePromise = getCollection(client, userDataCollection).findOneAndUpdate(
         { _id: id },
         updateFilter
     );
@@ -372,7 +382,7 @@ async function addUserData(
         ]);
         promiseResult = await convertUpdatePromise;
     } finally {
-        dbconnect.closeClient();
+        dbconnect.closeClient(client);
     }
 
     if (!promiseResult)
@@ -393,6 +403,12 @@ async function addUserData(
  * either the identifier matched no users, or the field did not exist.
  */
 async function getUserData(identifier, fieldNames, identifierForm = "_id") {
+    if (isEmpty(identifier))
+        throw new RequestError("ID is required but was not provided.");
+    if (isEmpty(fieldNames))
+        throw new RequestError(
+            "One or more fieldNames are required but none were provided."
+        );
     if (identifierForm.match(idRegex)) identifierForm = "_id";
     let validIDForms = ["_id", "email"];
     if (!validIDForms.includes(identifierForm))
@@ -413,12 +429,12 @@ async function getUserData(identifier, fieldNames, identifierForm = "_id") {
         projectionObj[fieldName] = 1;
     });
 
-    prepClient();
-    let getPromise = getCollection(userDataCollection).findOne(
+    let client = prepClient();
+    let getPromise = getCollection(client, userDataCollection).findOne(
         { [identifierForm]: identifier },
         { projection: projectionObj }
     );
-    getPromise.finally(() => dbconnect.closeClient());
+    getPromise.finally(() => dbconnect.closeClient(client));
     return await getPromise;
 }
 
@@ -437,13 +453,13 @@ async function removeUserData(id, fieldName) {
             `Field '${fieldName}' is required and cannot be removed.`
         );
 
-    prepClient();
-    let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
+    let client = prepClient();
+    let updatePromise = getCollection(client, userDataCollection).findOneAndUpdate(
         { _id: id },
         { $unset: { [fieldName]: "" } }
     );
 
-    updatePromise.finally(() => dbconnect.closeClient());
+    updatePromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await updatePromise;
 
     if (!promiseResult)
@@ -466,11 +482,11 @@ async function removeUserData(id, fieldName) {
 async function destroyUser(id) {
     if (isEmpty(id))
         throw new RequestError("ID is required but was not provided.");
-    prepClient();
-    let destroyPromise = getCollection(userDataCollection).findOneAndDelete({
+    let client = prepClient();
+    let destroyPromise = getCollection(client, userDataCollection).findOneAndDelete({
         _id: id,
     });
-    destroyPromise.finally(() => dbconnect.closeClient());
+    destroyPromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await destroyPromise;
     if (!promiseResult)
         throw new RequestError(
@@ -494,8 +510,6 @@ async function checkPassword(id, password) {
         throw new RequestError(
             "Password is required for comparison but was not provided."
         );
-
-    prepClient();
 
     let compareResult;
     try {
@@ -525,11 +539,12 @@ async function changePassword(id, newPassword) {
         throw new RequestError("newPassword is required but was not provided.");
 
     let encPassword = securePassword(newPassword);
-    prepClient();
-    let updatePromise = getCollection(userDataCollection).findOneAndUpdate(
+    let client = prepClient();
+    let updatePromise = getCollection(client, userDataCollection).findOneAndUpdate(
         { _id: id },
         { $set: { password: encPassword } }
     );
+    updatePromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await updatePromise;
     if (!promiseResult)
         throw new RequestError(
@@ -591,10 +606,10 @@ async function createSessionToken(
         expiry: expiryTime,
     };
 
-    prepClient();
+    let client = prepClient();
     let insertPromise =
-        getCollection(userTokenCollection).insertOne(tokenObject);
-    insertPromise.finally(() => dbconnect.closeClient());
+        getCollection(client, userTokenCollection).insertOne(tokenObject);
+    insertPromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await insertPromise;
     if (!promiseResult)
         throw new RequestError("Unknown failure. Token not generated.", 500);
@@ -611,9 +626,13 @@ async function checkSessionToken(token) {
     if (isEmpty(token))
         throw new RequestError("Token is required but was not provided.");
 
-    prepClient();
-    let getPromise = getCollection(userTokenCollection).findOne({ _id: token });
-    getPromise.finally(() => dbconnect.closeClient());
+    if (typeof token != "string")
+        throw new RequestError(
+            `Token is of type ${typeof token} but should be string.`
+        );
+    let client = prepClient();
+    let getPromise = getCollection(client, userTokenCollection).findOne({ _id: token });
+    getPromise.finally(() => dbconnect.closeClient(client));
     let promiseResult = await getPromise;
     //Non-existent token is the same as an expired token.
     if (!promiseResult) return false;
@@ -630,29 +649,30 @@ async function checkSessionToken(token) {
  * Forcibly expires (i.e. deletes) a session token on the database.
  * @param {string} token
  */
-function expireSessionToken(token) {
+async function expireSessionToken(token) {
     if (isEmpty(token))
         throw new RequestError("Token is required but was not provided.");
 
-    prepClient();
-    let deletePromise = getCollection(userTokenCollection).findOneAndDelete({
+    let client = prepClient();
+    let deletePromise = getCollection(client, userTokenCollection).findOneAndDelete({
         _id: token,
     });
     let trunc_token = token.slice(0, 7);
-    deletePromise.then((result) => {
-        if (!result)
-            console.error(
-                `Token '${trunc_token}(...)' could not be found. Unable to expire.`
-            );
-        else console.log(`Token '${trunc_token}(...)' expired successfully.`);
-    });
+
     deletePromise.catch((error) => {
-        console.error(
-            `Error: token '${trunc_token}(...)' may not have been deleted.`
+        throw new RequestError(
+            `Error: token '${trunc_token}(...)' may not have been deleted.\n` +
+                `Cause: ${error.message}`
         );
-        throw error;
     });
-    deletePromise.finally(() => dbconnect.closeClient());
+    deletePromise.finally(() => dbconnect.closeClient(client));
+
+    let promiseResult = await deletePromise;
+    if (!promiseResult)
+        throw new RequestError(
+            `Token '${trunc_token}(...)' could not be found. Unable to expire.`
+        );
+    else console.log(`Token '${trunc_token}(...)' expired successfully.`);
 }
 
 module.exports = {
