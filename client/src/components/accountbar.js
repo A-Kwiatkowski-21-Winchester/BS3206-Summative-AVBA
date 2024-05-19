@@ -14,7 +14,10 @@ function logIn() {
     axios.get(`http://localhost:8080/api/users/session/create?iden=${cred.email}&password=${cred.password}`)
     .then(
         (/*response*/) => {window.location.reload()}, 
-        (error) => {console.error(error)}
+        (error) => {
+            console.error(error);
+            alert("Invalid username or password")
+        }
     )
     
 
