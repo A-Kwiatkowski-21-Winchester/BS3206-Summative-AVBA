@@ -1,3 +1,7 @@
+# INFORMATION
+**This is the default React README generated with a new project.**
+To see the specific readme for this whole project, please refer to the [README.md](../README.md) file in the root folder.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

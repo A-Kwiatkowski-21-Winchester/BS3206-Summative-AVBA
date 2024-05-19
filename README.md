@@ -59,12 +59,12 @@ Wait a moment, and once the process completes you will see a screen that looks l
 >
 > Local:            http://localhost:3000
 
-A browser window will also open containing the homepage. If you want to test the API Call button in the center, you can open the Developer menu in your browser by pressing either:
+A browser window will also open containing the homepage. To see console messages for debugging purposes, you can open the Developer menu in your browser by pressing either:
 - <kbd>F12</kbd>, or
 - <kbd>CTRL</kbd> + <kbd>SHIFT</kbd> + <kbd>J</kbd>  (Windows)
 - <kbd>⌘ CMD</kbd> + <kbd>OPTION</kbd> + <kbd>J</kbd>  (Mac)
 
-With the Developer menu open and the console shown, you can see the data object appearing once the API Call button is pressed.
+With the Developer menu open and the console shown, you can see the log messages, requests, and data objects.
 
 ### Issues
 #### "Command Not Found"
