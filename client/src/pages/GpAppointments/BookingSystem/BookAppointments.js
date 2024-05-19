@@ -18,9 +18,11 @@ export default function BookAppointments(){
             return alert("Error, no digits are allowed as part of the patient or doctor name")
         }
 
+        /*
         if (!healthNumber.match(/^[0-9]+$/)){
             return alert("Error, health number should be digits only")
         }
+        */ // Removing restriction (#41)
 
         const appointmentDetails = {patientName, healthNumber, doctorName, date, time}
         
@@ -40,6 +42,7 @@ export default function BookAppointments(){
         if (response.ok){
             console.log(apiResponse)
             alert("Success! Appointment created.")
+            window.location.reload()
         }
         
     }
@@ -58,7 +61,7 @@ export default function BookAppointments(){
                 required/>
 
                 <label>Health Number</label>
-                <input type="Integer" 
+                <input type="text" 
                 placeholder='Health Number'
                 onChange={(e) => setHealthNumber(e.target.value)}
                 value = {healthNumber}
