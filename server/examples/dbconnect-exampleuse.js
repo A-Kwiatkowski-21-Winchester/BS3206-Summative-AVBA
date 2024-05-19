@@ -6,18 +6,14 @@ function explainRun() {
     // Helper module import.
     let dbconnect = require('../libs/dbconnect');
 
-    // Generate a global client
-    dbconnect.generateClient();
+    // Generate a client
+    let client = dbconnect.generateClient();
 
-    // Open the global client
-    dbconnect.openClient();
+    // Open the client
+    dbconnect.openClient(client);
 
     // Ping the global client as a test
-    dbconnect.ping();
-
-    // Get the global client from the helper module for further use
-    let client = dbconnect.globals.client;
-
+    dbconnect.ping(client);
 
     // Get a specific database from a client
     let db = client.db("sample_guides")
@@ -49,8 +45,8 @@ function explainRun() {
     */
 
 
-    // Closes the global client. 
-    dbconnect.closeClient();
+    // Closes the client. 
+    dbconnect.closeClient(client);
     // ^ If this is called too early, your asynchronous function from earlier (.findOne) will yell at you,
     // because it might still be using the client. 
     // If you're only performing one action, this is easily solved by putting the close client command 
@@ -63,13 +59,13 @@ function explainRun() {
 function exampleRun() {
     let dbconnect = require('../libs/dbconnect');
 
-    dbconnect.generateClient();
+    let client = dbconnect.generateClient();
 
-    dbconnect.openClient();
+    dbconnect.openClient(client);
 
-    dbconnect.ping();
+    dbconnect.ping(client);
 
-    let db = dbconnect.globals.client.db("sample_guides")
+    let db = client.db("sample_guides")
     let collection = db.collection("planets")
     let recordPromise = collection.findOne()
     
@@ -80,7 +76,7 @@ function exampleRun() {
         () => console.error("Couldn't find record.")
     )
     recordPromise.finally(
-        () => dbconnect.closeClient()
+        () => dbconnect.closeClient(client)
     )
 }
 
