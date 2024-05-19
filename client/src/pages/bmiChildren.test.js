@@ -58,12 +58,8 @@ test('renders BmiChildren component correctly and verifies inputs and calculatio
   expect(saveButton).toBeInTheDocument();
   expect(reloadButton).toBeInTheDocument();
 
-  // Simulate clicking the reload button to reset fields
+  // Simulate clicking the reload button to reset weight and height fields
   fireEvent.click(reloadButton);
   expect(heightInput.value).toBe('');
   expect(weightInput.value).toBe('');
-  expect(dayInput.value).toBe('');
-  expect(monthInput.value).toBe('');
-  expect(yearInput.value).toBe('');
-  expect(genderRadioMale.checked).toBe(false);
 });

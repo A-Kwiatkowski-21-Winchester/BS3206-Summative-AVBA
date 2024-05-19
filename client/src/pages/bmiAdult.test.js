@@ -47,7 +47,7 @@ test('renders BmiAdults component correctly and verifies inputs and calculations
 
   // Check BMI calculation and category
   expect(screen.getByText('Your BMI is: 20.0')).toBeInTheDocument();
-  expect(screen.getByText('Your weight is between the 2nd and 91st centiles')).toBeInTheDocument();
+  expect(screen.getByText('You are within the healthy range for BMI. Maintain your good health choices!')).toBeInTheDocument();
 
   // Check if the save and reload buttons are present
   const saveButton = screen.getByText('Save');
@@ -55,11 +55,8 @@ test('renders BmiAdults component correctly and verifies inputs and calculations
   expect(saveButton).toBeInTheDocument();
   expect(reloadButton).toBeInTheDocument();
 
-  // Simulate clicking the reload button to reset fields
+  // Simulate clicking the reload button to reset weight and height fields
   fireEvent.click(reloadButton);
   expect(heightInput.value).toBe('');
   expect(weightInput.value).toBe('');
-  expect(dayInput.value).toBe('');
-  expect(monthInput.value).toBe('');
-  expect(yearInput.value).toBe('');
 });

@@ -265,14 +265,14 @@ function BmiChildren() {
                         {/* This is the input fields for the metric system which is the default calculation 
                         system when using the bmi calculator */}
                             <div>
-                                <label className="labels">Height (cm):</label><br />
-                                <input className="bmi-input" type="number" placeholder=""  onChange={(e)=>setHeight(e.target.value)} value={height} />
+                                <label className="labels" htmlFor="heightMetric">Height (cm):</label><br />
+                                <input className="bmi-input" type="number" placeholder="" id="heightMetric" onChange={(e)=>setHeight(e.target.value)} value={height} />
                             </div>
                             <hr className="divider" /> {/* Grey line divider */}
 
                             <div>
-                                <label className="labels">Weight (kg):</label><br />
-                                <input className="bmi-input" type="number" placeholder=""  onChange={(e)=>setWeight(e.target.value)} value={weight}/>
+                                <label className="labels" htmlFor="weightMetric">Weight (kg):</label><br />
+                                <input className="bmi-input" type="number" placeholder="" id="weightMetric" onChange={(e)=>setWeight(e.target.value)} value={weight}/>
                             </div>
                             <hr className="divider" /> {/* Grey line divider */}
                         </>
@@ -281,20 +281,20 @@ function BmiChildren() {
                         {/* This is the input fields for the imperial system which becomes visable
                         when the imperial button has been selected. */}
                             <div>
-                                <label className="labels">Height (ft):</label><br />
-                                <input className="bmi-input" type="number" placeholder="" value={feet} onChange={(e)=>setFeet(e.target.value)} />
+                                <label className="labels" htmlFor="heightImperial1">Height (ft):</label><br />
+                                <input className="bmi-input" type="number" placeholder="" id="heightImperial1" value={feet} onChange={(e)=>setFeet(e.target.value)} />
                             </div>
                             <hr className="divider" /> {/* Grey line divider */}
 
                             <div>
-                                <label className="labels">Height (in):</label><br />
-                                <input className="bmi-input" type="number" placeholder="" value={inches} onChange={(e)=>setInches(e.target.value)} />
+                                <label className="labels" htmlFor="heightImperial2">Height (in):</label><br />
+                                <input className="bmi-input" type="number" placeholder="" id="heightImperial2" value={inches} onChange={(e)=>setInches(e.target.value)} />
                             </div>
                             <hr className="divider" /> {/* Grey line divider */}
                             
                             <div>
-                                <label className="labels">Weight (lbs):</label><br />
-                                <input className="bmi-input" type="number" placeholder="" value={pound} onChange={(e)=>setPound(e.target.value)}/>
+                                <label className="labels" htmlFor="weightImperial">Weight (lbs):</label><br />
+                                <input className="bmi-input" type="number" placeholder="" id="weightImperial" value={pound} onChange={(e)=>setPound(e.target.value)}/>
                             </div>
                             <hr className="divider" /> {/* Grey line divider */}
                         </>
@@ -327,18 +327,21 @@ function BmiChildren() {
                     range and if not then they are directed to the adult section */}
                     <div className="buttonContainer">
                         <div className="buttonWrapper">
-                            <p>Day</p>
-                            <input className="bmi-input" type="number" placeholder="" onChange={(e) => setDay(e.target.value)} onBlur={checkAge} />
+                            <br />
+                            <label className="labels" htmlFor="dateDay">Day</label><br />
+                            <input className="bmi-input" type="number" placeholder="" id="dateDay" onChange={(e) => setDay(e.target.value)} onBlur={checkAge} />
                         </div>
 
                         <div className="buttonWrapper">
-                            <p>Month</p>
-                            <input className="bmi-input" type="number" placeholder="" onChange={(e) => setMonth(e.target.value)} onBlur={checkAge} />
+                            <br />
+                            <label className="labels" htmlFor="dateMonth">Month</label><br />
+                            <input className="bmi-input" type="number" placeholder="" id="dateMonth" onChange={(e) => setMonth(e.target.value)} onBlur={checkAge} />
                         </div>
 
                         <div className="buttonWrapper">
-                            <p>Year</p>
-                            <input className="bmi-input" type="number" placeholder="" onChange={(e) => setYear(e.target.value)} onBlur={checkAge} />
+                            <br />
+                            <label className="labels" htmlFor="dateYear">Year</label><br />
+                            <input className="bmi-input" type="number" placeholder="" id="dateYear" onChange={(e) => setYear(e.target.value)} onBlur={checkAge} />
                         </div>
                     </div>
 
