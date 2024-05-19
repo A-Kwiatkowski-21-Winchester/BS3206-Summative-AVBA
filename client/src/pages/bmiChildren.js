@@ -74,6 +74,7 @@ function BmiChildren() {
             }
         });
         const apiResponse = await apiCall.json();
+        if(apiResponse.acknowledged) alert("Saved successfully!")
         console.log(apiResponse);
     }
 
