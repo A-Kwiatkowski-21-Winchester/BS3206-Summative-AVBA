@@ -9,14 +9,17 @@ export default function ViewAppointments(){
 
     useEffect(() => {
         const getAppointments = async () => {
-            const response = await fetch('http://localhost:8080/api/appointments/')
-            const responseData = await response.json()
+            try {
+                const response = await fetch('http://localhost:8080/api/appointments/')
+                const responseData = await response.json()
 
-            if (response.ok){
-                setAppointments(responseData)
-                
+                if (response.ok){
+                    setAppointments(responseData)
+                }
+            } catch (error) {
+                alert("Error loading appointments. Unable to communicate with server.")
+                console.error("Could not connect to server.", error)
             }
-
             
         }  
         getAppointments()

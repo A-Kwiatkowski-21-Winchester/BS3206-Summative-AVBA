@@ -10,14 +10,18 @@ export default function ViewAllArticles(){
     
     useEffect(() => {
         const getArticles = async () => {
-            const response = await fetch('http://localhost:8080/api/mentalhealth')
-            const responseData = await response.json()
+            const response = await fetch("http://localhost:8080/api/mentalhealth");
+            const responseData = await response.json();
 
-            if (response.ok){
-                setArticles(responseData)
+            if (response.ok) {
+                setArticles(responseData);
             }
-        }  
-        getArticles()
+        };
+        getArticles().catch((error) => {
+            alert("Error loading mental health content. Unable to communicate with server.");
+            console.error("Could not connect to server.", error);
+        });
+
     }, [])
 
      function ViewArticle(title, author, date, content){
