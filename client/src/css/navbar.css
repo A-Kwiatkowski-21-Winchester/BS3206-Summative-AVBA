@@ -1,0 +1,77 @@
+@import "colors.css";
+
+.navbar {
+  list-style: none;
+  display: flex;
+  justify-content: left;
+  background-color: var(--navbarbackground);
+  padding-top: 2vh;
+  padding-bottom: 2vh;
+
+}
+
+.navbar-item {
+  color: var(--text);
+  background-color: var(--navbaritembackground);
+  border-color: var(--navbaritemborder);
+  border-style: solid;
+  text-decoration: none;
+  padding-inline: 3vw;
+  padding-block: 1.6vh;
+}
+
+.active {
+  color: var(--invertedtext);
+  background-color: var(--navbaritemactivebackground);
+  border-color: var(--navbaritemactiveborder);
+}
+
+a {
+  color: var(--invertedtext);
+  border-color: var(--navbaritemactiveborder);
+}
+
+a:hover {
+  color: var(--invertedtext);
+  background-color: var(--navbaritemactivebackground);
+  border-color: var(--navbaritemactiveborder);
+}
+
+
+.dropdown-navbar {
+  color: var(--text);
+  background-color: var(--navbaritembackground);
+  border-color: var(--navbaritemborder);
+  border-style: solid;
+  text-decoration: none;
+  padding-inline: 4vw;
+  padding-block: 1.6vh;
+}
+
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: var(--navbardropdown);
+  min-width: 100%;
+  z-index: 1;
+  margin-top:10px;
+}
+
+.dropdown-content li:hover {
+  background-color: var(--navbaractivedropdown)
+}
+
+.dropdown-container:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-container:hover .dropdown-navbar {
+  color: var(--invertedtext);
+  background-color: var(--navbaritemactivebackground);
+  border-color: var(--navbaritemactiveborder);
+}
