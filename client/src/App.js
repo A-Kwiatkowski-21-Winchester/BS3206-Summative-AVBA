@@ -6,7 +6,7 @@ import Navbar from './components/navbar';
 import AccountBar from './components/accountbar';
 import { Home, SignUp, Contact,BmiChildren,BmiAdults,Bmitest,BookAppointments,ViewAppointments,CreateArticle,ViewAllArticles } from './pages/pageindex';
 import "./css/general.css";
-import logo512 from './devLogo.png'
+import logo512 from './AvbaLogo_crop.png'
 
 axios.defaults.withCredentials = true;
 
