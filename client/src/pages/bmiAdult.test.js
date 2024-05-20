@@ -71,7 +71,7 @@ test('renders BmiAdults component correctly and verifies inputs and calculations
   // Age verification for under 18
   fireEvent.change(yearInput, { target: { value: '2010' } });
   fireEvent.blur(yearInput); // Trigger age check
-  expect(screen.getByText('You should use the child and teen BMI calculator.')).toBeInTheDocument();
+  expect(screen.getByText('You should use the child and teen BMI calculator. Click the link:')).toBeInTheDocument();
 
 
   // Check if the save and reload buttons are present

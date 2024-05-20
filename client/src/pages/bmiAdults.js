@@ -131,8 +131,17 @@ function BmiAdults() {
                 if (age < 18 || (age === 18 && monthDifference <= 0 && currentDate.getDate() < enteredDate.getDate())) {
                     setMessage(
                         <span>
-                            You should use the child and teen BMI calculator. Click the link: <br/>
-                            <Link to="/bmiChildren" className="link">Calculate your BMI for children and teenagers</Link>
+                            <span>
+                                You should use the child and teen BMI
+                                calculator. Click the link:
+                            </span>
+                            <br />
+                            <span>
+                                <Link to="/bmiChildren" className="link">
+                                    Calculate your BMI for children and
+                                    teenagers
+                                </Link>
+                            </span>
                         </span>
                     );
                 } else {
