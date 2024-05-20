@@ -2,15 +2,15 @@
 :root {
     --text:#000000;
     --invertedtext:#ffffff;
-    --headerbackground:#015089;
-    --navbarbackground:#015089;
+    --headerbackground:#00406d;
+    --navbarbackground:#00406d;
     --navbaritembackground:#ffffff;
-    --navbaritemborder:#015089;
-    --navbaritemactivebackground:#008b8b;
-    --navbaritemactiveborder:#015089;
-    --navbardropdown:#03a7a7;
-    --navbaractivedropdown:#018181;
-    --backgroundcolour:#015089;
+    --navbaritemborder:#00406d;
+    --navbaritemactivebackground:#034949;
+    --navbaritemactiveborder:#006ab6;
+    --navbardropdown:#036363;
+    --navbaractivedropdown:#034949;
+    --backgroundcolour:#00406d;
     --foregroundcolour:#ffffff;
 
     }
